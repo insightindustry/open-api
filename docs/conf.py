@@ -33,7 +33,7 @@ __version__ = version_dict.get('__version__')
 
 # -- Project information -----------------------------------------------------
 
-project = 'Open API for Python'
+project = 'OpenAPI for Python'
 copyright = '2019, Insight Industry Inc.'
 author = 'Chris Modzelewski'
 
