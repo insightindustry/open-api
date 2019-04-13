@@ -93,7 +93,7 @@ Where **OpenAPI for Python** differs from these other libraries is in three key 
 
   * Full Standard Support. Where each of the projects listed above fall down is in their
     support of the entire OpenAPI standard. By design, **OpenAPI for Python** supports
-    the entire standard OpenAPI v.3 standard, when programmatically editing an OpenAPI
+    the entire OpenAPI v.3 standard, when programmatically editing an OpenAPI
     specification in Python, when reading an OpenAPI specification from JSON or YAML, or
     when writing an OpenAPI specification to JSON or YAML.
   * Comprehensive Object Model and Consistent API. As mentioned, the **OpenAPI for Python**
