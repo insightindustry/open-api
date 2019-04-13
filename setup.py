@@ -56,7 +56,7 @@ setup(
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
-    description=('Python serialization/de-serialization for OpenAPI 3.0 documents'),  # Required
+    description=('Python support for OpenAPI 3.0 documents'),  # Required
 
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
@@ -112,8 +112,6 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
@@ -177,7 +175,7 @@ setup(
                  'codecov'],
     },
 
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
+    python_requires='>=3, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.
