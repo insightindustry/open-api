@@ -3,6 +3,9 @@ sudo: false
 dist: trusty
 cache: pip
 
+before_install:
+  - sudo apt-get install pandoc
+
 env:
   global:
     - PYTHONFAULTHANDLER=x
