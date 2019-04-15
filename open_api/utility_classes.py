@@ -77,8 +77,10 @@ class Markup(str):
         :returns: The converted content.
         :rtype: :class:`Markup`
         """
-        if self.markup_format == target:
+        if self.markup_format == target and trim:
             return self.strip()
+        elif self.markup_format == target:
+            return self
 
         converted_text = pypandoc.convert_text(self, target, self.markup_format).strip()
         result = Markup(converted_text, markup_format = target)
