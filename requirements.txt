@@ -2,6 +2,8 @@ backoff-utils==1.0.0
 jsonschema==3.0.1
 py==1.8.0
 pytest==4.4.0
+pytest-cov==2.6.1
+coverage==4.5.3
 requests==2.21.0
 Sphinx==1.8.5
 sphinx-rtd-theme==0.4.3
