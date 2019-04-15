@@ -21,6 +21,9 @@ class Markup(str):
     _markup_format = None
 
     def __new__(cls, content, **kwargs):
+        if '\r\n' in content:
+            content = content.replace('\r\n', '\n')
+
         str_obj = super(Markup, cls).__new__(cls, content)
         str_obj.markup_format = kwargs.pop('markup_format', 'commonmark')
 
@@ -31,11 +34,14 @@ class Markup(str):
             def method(self, *args, **kwargs):
                 value = getattr(super(), name)(*args, **kwargs)
                 if isinstance(value, str):
-                    return type(self)(value, markup_format = self.markup_format)
+                    return type(self)(value,
+                                      markup_format = self.markup_format)
                 elif isinstance(value, list):
-                    return [type(self)(x, markup_format = self.markup_format) for x in value]
+                    return [type(self)(x,
+                                       markup_format = self.markup_format) for x in value]
                 elif isinstance(value, tuple):
-                    return (type(self)(x, markup_format = self.markup_format) for x in value)
+                    return (type(self)(x,
+                                       markup_format = self.markup_format) for x in value)
                 else:
                     return value
             return method.__get__(self)
@@ -79,10 +85,13 @@ class Markup(str):
         """
         if self.markup_format == target and trim:
             return self.strip()
-        elif self.markup_format == target:
+        if self.markup_format == target:
             return self
 
         converted_text = pypandoc.convert_text(self, target, self.markup_format).strip()
+        if '\r\n' in converted_text:
+            converted_text = converted_text.replace('\r\n', '\n')
+
         result = Markup(converted_text, markup_format = target)
 
         return result

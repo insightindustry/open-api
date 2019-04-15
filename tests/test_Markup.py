@@ -69,11 +69,11 @@ def test_Markup__init__(value, format, expected):
 
     ## Github Flavor: True
     ('test123', None, True, 'test123'),
-    ('******************\nHeading Goes Here\n******************', None, True, '-----\r\n\r\nHeading Goes Here\r\n\r\n-----'),
+    ('******************\nHeading Goes Here\n******************', None, True, '-----\n\nHeading Goes Here\n\n-----'),
     ('# Heading Goes Here', None, True, '# Heading Goes Here'),
 
     ('test123', 'commonmark', True, 'test123'),
-    ('******************\nHeading Goes Here\n******************', 'commonmark', True, '-----\r\n\r\nHeading Goes Here\r\n\r\n-----'),
+    ('******************\nHeading Goes Here\n******************', 'commonmark', True, '-----\n\nHeading Goes Here\n\n-----'),
     ('# Heading Goes Here', 'commonmark', True, '# Heading Goes Here'),
 
     ('test123', 'rst', True, 'test123'),
@@ -111,19 +111,19 @@ def test_Markup_to_markdown(value, initial_format, github_flavor, expected):
 @pytest.mark.parametrize('value, initial_format, expected', [
     # pylint: disable=line-too-long
     ('test123', None, 'test123'),
-    ('******************\nHeading Goes Here\n******************', None, '--------------\r\n\r\nHeading Goes Here\r\n\r\n--------------'),
-    ('# Heading Goes Here', None, 'Heading Goes Here\r\n================='),
+    ('******************\nHeading Goes Here\n******************', None, '--------------\n\nHeading Goes Here\n\n--------------'),
+    ('# Heading Goes Here', None, 'Heading Goes Here\n================='),
 
     ('test123', 'commonmark', 'test123'),
-    ('******************\nHeading Goes Here\n******************', 'commonmark', '--------------\r\n\r\nHeading Goes Here\r\n\r\n--------------'),
-    ('# Heading Goes Here', 'commonmark', 'Heading Goes Here\r\n================='),
+    ('******************\nHeading Goes Here\n******************', 'commonmark', '--------------\n\nHeading Goes Here\n\n--------------'),
+    ('# Heading Goes Here', 'commonmark', 'Heading Goes Here\n================='),
 
     ('test123', 'rst', 'test123'),
     ('******************\nHeading Goes Here\n******************', 'rst', '******************\nHeading Goes Here\n******************'),
     ('# Heading Goes Here', 'rst', '# Heading Goes Here'),
 
     ('test123', 'gfm', 'test123'),
-    ('# Heading Goes Here', 'gfm', 'Heading Goes Here\r\n================='),
+    ('# Heading Goes Here', 'gfm', 'Heading Goes Here\n================='),
 
     # pylint: enable=line-too-long
 ])
