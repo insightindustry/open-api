@@ -88,7 +88,7 @@ def parse_json(input_data,
     """De-serialize JSON data into a Python :class:`dict <python:dict>` object.
 
     :param input_data: The JSON data to de-serialize.
-    :type input_data: :class:`str <python:str>`
+    :type input_data: :class:`str <python:str>` / Path-like object
 
     :param deserialize_function: Optionally override the default JSON deserializer.
       Defaults to :obj:`None <python:None>`, which first tries to use
@@ -112,7 +112,8 @@ def parse_json(input_data,
 
     :param kwargs: Optional keyword parameters that are passed to the
       JSON deserializer function. By default, these are options which are passed
-      to :ref:`simplejson.loads() <simplejson:simplejson.loads>`.
+      to the de-serializer function (e.g.
+      :ref:`simplejson.loads() <simplejson:simplejson.loads>`).
     :type kwargs: keyword arguments
 
     :returns: A :class:`dict <python:dict>` representation of ``input_data``.
