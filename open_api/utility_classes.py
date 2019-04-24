@@ -179,7 +179,7 @@ class Extensions(dict):
 
         return super(Extensions, self).__contains__(value)
 
-    def _to_dict(self, *args, **kwargs):
+    def to_dict(self, *args, **kwargs):
         """Output the contents of the object to a :class:`dict <python:dict>` object.
 
         :returns: :class:`dict <python:dict>` object whose keys conform to the
@@ -196,6 +196,28 @@ class Extensions(dict):
             output['x-{}'.format(key)] = value
 
         return output
+
+    def add_to_dict(self, obj, *args, **kwargs):
+        """Serialize the collection and add its serialized keys to ``obj``.
+
+        :param obj: The :class:`dict <python:dict>` to which the collection should be
+          added.
+        :type obj: :class:`dict <python:dict>`
+
+        :returns: ``obj`` extended by serialized key/value pairs from the instance
+        :rtype: :class:`dict <python:dict>`
+
+        :raises ValueError: if ``obj`` is not a :class:`dict <python:dict>`
+        """
+        obj = validators.dict(obj, allow_empty = True)
+        if not obj:
+            obj = {}
+
+        output = self.to_dict(*args, **kwargs)
+        for key in output:
+            obj[key] = output[key]
+
+        return obj
 
     def to_json(self,
                 serialize_function = None,
