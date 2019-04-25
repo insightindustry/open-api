@@ -27,11 +27,24 @@ class ServerVariable(object):
 
         # Required
         self._default = None
+        self._name = None
 
         # Not Required
         self._enum = None
         self._description = None
         self._extensions = None
+
+    @property
+    def name(self):
+        """The name given to the server variable.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+        """
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = validators.string(value, allow_empty = True)
 
     @property
     def default(self):
@@ -475,3 +488,25 @@ class ServerVariable(object):
                              **kwargs)
 
         self.update_from_dict(as_dict)
+
+    def add_to_dict(self, obj, **kwargs):
+        """Add a :class:`dict <python:dict>` representation of the :class:`ServerVariable`
+        to ``obj``.
+
+        :param obj: The :class:`dict <python:dict>` to which the :class:`ServerVariable`
+          will be added.
+        :type obj: :class:`dict <python:dict>`
+
+        :returns: ``obj`` with the :class:`dict <python:dict>` representation of the
+          :class:`ServerVariable` instance as a key/value pair
+        :rtype: :class:`dict <python:dict>`
+
+        :raises ValueError: if ``obj`` is not a :class:`dict <python:dict>`
+        """
+        obj = validators.dict(obj, allow_empty = True)
+        if not obj:
+            obj = {}
+
+        obj[self.name] = self.to_dict(**kwargs)
+
+        return obj
