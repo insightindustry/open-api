@@ -16,7 +16,8 @@ except ImportError:
 import yaml
 from validator_collection import validators, checkers
 
-from open_api.utility_classes import Markup, Extensions
+from open_api.Server import Server
+from open_api.utility_classes import Markup, Extensions, ManagedList
 from open_api.utility_functions import parse_json, parse_yaml
 
 class OpenAPI(object):
@@ -44,6 +45,8 @@ class OpenAPI(object):
         self._info_license_extensions = None
 
         self._info_extensions = None
+
+        self._servers = None
 
         self._external_documentation_description = None
         self._external_documentation_url = None
@@ -298,6 +301,49 @@ class OpenAPI(object):
             self._info_extensions = value
 
     @property
+    def servers(self):
+        """Collection of :class:`Server` objects which provide connectivity information to
+        the API.
+
+        .. note::
+
+          If no ``servers`` are specified, the default value would be a :class:`Server`
+          with a URL value of ``/``.
+
+        :rtype: :class:`ManagedList` of :class:`Server` objects
+        """
+        if not self._servers:
+            return ManagedList(Server(url = '/'))
+
+        return self._servers
+
+    @servers.setter
+    def servers(self, value):
+        if not value:
+            self._servers = None
+            return
+
+        if value and checkers.is_dict(value):
+            value = [Server.new_from_dict(value)]
+        elif value and checkers.is_iterable(value):
+            new_iterable = []
+            for item in value:
+                if checkers.is_type(value, 'Server'):
+                    new_iterable.append(item)
+                elif checkers.is_dict(value):
+                    new_iterable.append(Server.new_from_dict(item))
+                else:
+                    raise ValueError('value expected to be a Server object, compatible '
+                                     'dict, or a list of Server objects or compatible '
+                                     'dicts. Was: %s' % item.__class__.__name__)
+
+            value = [x for x in new_iterable]
+        elif value and checkers.is_type(value, Server):
+            value = [value]
+
+        self._servers = ManagedList(*value)
+
+    @property
     def external_documentation_description(self):
         """A short description of the external documentation.
 
@@ -434,8 +480,6 @@ class OpenAPI(object):
 
 
         return output
-
-
 
     def to_json(self, serialize_function = None, **kwargs):
         """Return a JSON string compliant with the
