@@ -510,3 +510,15 @@ class ServerVariable(object):
         obj[self.name] = self.to_dict(**kwargs)
 
         return obj
+
+    @property
+    def is_valid(self):
+        """Returns ``True`` if the object is valid per the
+        `OpenAPI Specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md>`_
+
+        :rtype: :class:`bool <python:bool>`
+        """
+        if not self.default:
+            return False
+
+        return True
