@@ -5,10 +5,25 @@
 # extension, and its member class documentation is automatically incorporated
 # there as needed.
 
-class DeserializationError(ValueError):
+class OpenAPIError(ValueError):
+    """Base error that all other errors inherit from.
+
+    **INHERITS FROM:** :exc:`ValueError <python:ValueError>`
+    """
+    pass
+
+class DeserializationError(OpenAPIError):
     """Exception raised when :term:`de-serialization` fails.
 
     **INHERITS FROM:** :class:`ValueError <python:ValueError>`
+
+    """
+    pass
+
+class UnsupportedPropertyError(OpenAPIError):
+    """Exception raised when the user attempts to access (or set) a property on an OpenAPI
+    object that is not supported per the
+    `OpenAPI Specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md>`_.
 
     """
     pass

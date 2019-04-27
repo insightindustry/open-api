@@ -5,6 +5,8 @@
 # extension, and its member function documentation is automatically incorporated
 # there as needed.
 
+import abc
+
 try:
     import ujson as json
 except ImportError:
@@ -16,54 +18,35 @@ except ImportError:
 import yaml
 from validator_collection import validators, checkers
 
-from open_api.utility_classes import Markup, Extensions, ManagedList
-from open_api.utility_functions import parse_json, parse_yaml
+from open_api.utility_classes import Markup, Extensions
+from open_api.utility_functions import parse_json, parse_yaml, add_metaclass
 
-class ServerVariable(object):
-    """Object representation of a :term:`Server Variable` object."""
+@add_metaclass(abc.ABCMeta)
+class OpenAPIObject(object):
+    """A metaclass that is used to define the standard methods required by OpenAPI
+    objects."""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-        # Required
-        self._default = None
-        self._name = None
-
-        # Not Required
-        self._enum = None
         self._description = None
         self._extensions = None
 
-    @property
-    def name(self):
-        """The name given to the server variable.
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
-        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
-        """
-        return self._name
+        super().__init__(*args)
 
-    @name.setter
-    def name(self, value):
-        self._name = validators.string(value, allow_empty = True)
-
-    @property
-    def default(self):
-        """The default value to use for substitution.
-
-        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
-        """
-        return self._default
-
-    @default.setter
-    def default(self, value):
-        self._default = validators.string(value, allow_empty = True)
 
     @property
     def description(self):
-        """A description of the :term:`Server Variable`. Defaults to
-        :obj:`None <python:None>`.
+        """A description of the object. Defaults to :obj:`None <python:None>`.
 
         Supports markup expressed in :term:`CommonMark` or :term:`ReStructuredText`.
+
+        .. tip::
+
+          If an OpenAPI object does not have a ``description`` property, then this should
+          always raise :exc:`UnsupportedOpenAPIPropertyError`.
 
         :rtype: :class:`Markup <open_api.utility_classes.Markup>` /
           :obj:`None <python:None>`
@@ -82,38 +65,14 @@ class ServerVariable(object):
                              'Was: {}'.format(value.__class__.__name__))
 
     @property
-    def enum(self):
-        """A collection of string values that can be used for substitution if options are
-        limited by the API.
-
-        :rtype: :class:`ManagedList` (subclass of :class:`list <python:list>`) of
-          :class:`str <python:str>` / :obj:`None <python:None>`
-        """
-        return self._enum
-
-    @enum.setter
-    def enum(self, value):
-        if not value:
-            value = None
-        else:
-            if checkers.is_string(value):
-                value = [value]
-            if checkers.is_type(value, list) and not checkers.is_type(value,
-                                                                      'ManagedList'):
-                value = [validators.string(x, allow_empty = False, coerce_value = True)
-                         for x in value]
-                value = ManagedList(*value)
-
-            if not checkers.is_type(value, 'ManagedList'):
-                raise ValueError('value must be a str, list, or ManagedList. Was: %s' %
-                                 value.__class__.__name__)
-
-        self._enum = value
-
-    @property
     def extensions(self):
         """Collection of :term:`Specification Extensions` that have been applied to the
-        :term:`Server Variable`. Defaults to :obj:`None <python:None>`.
+        object. Defaults to :obj:`None <python:None>`.
+
+        .. tip::
+
+          If an OpenAPI object does not have a ``description`` property, then this should
+          always raise :exc:`UnsupportedOpenAPIPropertyError`.
 
         :rtype: :class:`Extensions` / :obj:`None <python:None>`
         """
@@ -139,20 +98,30 @@ class ServerVariable(object):
 
             self._extensions = Extensions.new_from_dict(value)
 
+    @abc.abstractmethod
     def to_dict(self, **kwargs):
         """Return a :class:`dict <python:dict>` representation of the object.
 
+        An example implementation is shown below:
+
+        .. code-block:: python
+
+          output = {
+              'default': self.default,
+              'description': self.description,
+              'enum': self.enum
+          }
+          try:
+              if self.extensions is not None:
+                  output = self.extensions.add_to_dict(output, **kwargs)
+          except UnsupportedPropertyError:
+              pass
+
+          return output
+
         :rtype: :class:`dict <python:dict>` / :obj:`None <python:None>`
         """
-        output = {
-            'default': self.default,
-            'description': self.description,
-            'enum': self.enum
-        }
-        if self.extensions is not None:
-            output = self.extensions.add_to_dict(output, **kwargs)
-
-        return output
+        raise NotImplementedError()
 
     def to_json(self, serialize_function = None, **kwargs):
         """Return a JSON string compliant with the
@@ -251,8 +220,9 @@ class ServerVariable(object):
         return result
 
     @classmethod
+    @abc.abstractmethod
     def new_from_dict(cls, obj, **kwargs):
-        """Create a new :class:`ServerVariable` object from a :class:`dict <python:dict>`.
+        """Create a new object from a :class:`dict <python:dict>`.
 
         :param obj: A :class:`dict <python:dict>` that contains the extension
           properties.
@@ -261,24 +231,7 @@ class ServerVariable(object):
         :returns: :class:`ServerVariable` object
         :rtype: :class:`ServerVariable`
         """
-        obj = validators.dict(obj, allow_empty = True)
-        if not obj:
-            obj = {}
-
-        default = obj.pop('default', None)
-        description = obj.pop('description', None)
-        enum = obj.pop('enum', None)
-        if obj:
-            extensions = Extensions.new_from_dict(obj, **kwargs)
-        else:
-            extensions = None
-
-        output = cls(default = default,
-                     description = description,
-                     enum = enum,
-                     extensions = extensions)
-
-        return output
+        raise NotImplementedError()
 
     @classmethod
     def new_from_json(cls,
@@ -370,6 +323,7 @@ class ServerVariable(object):
 
         return output
 
+    @abc.abstractmethod
     def update_from_dict(self, input_data):
         """Update the object representation based on the input data provided.
 
@@ -383,21 +337,7 @@ class ServerVariable(object):
           key on the instance will *not* be affected by this method.
 
         """
-        input_data = validators.dict(input_data, allow_empty = True)
-        if not input_data:
-            input_data = {}
-
-        if 'default' in input_data:
-            self.default = input_data.pop('default')
-        if 'description' in input_data:
-            self.description = input_data.pop('description')
-        if 'enum' in input_data:
-            self.enum = input_data.pop('enum')
-
-        if input_data and self.extensions:
-            self.extensions.update_from_dict(input_data)
-        elif input_data:
-            self.extensions = input_data
+        raise NotImplementedError()
 
     def update_from_json(self,
                          input_data,
@@ -507,18 +447,9 @@ class ServerVariable(object):
         if not obj:
             obj = {}
 
-        obj[self.name] = self.to_dict(**kwargs)
+        try:
+            obj[getattr(self, 'name')] = self.to_dict(**kwargs)
+        except AttributeError:
+            pass
 
         return obj
-
-    @property
-    def is_valid(self):
-        """Returns ``True`` if the object is valid per the
-        `OpenAPI Specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md>`_
-
-        :rtype: :class:`bool <python:bool>`
-        """
-        if not self.default:
-            return False
-
-        return True

@@ -8,71 +8,75 @@
 from validator_collection import validators, checkers
 
 from open_api._object_metaclass import OpenAPIObject
-from open_api.server_variable import ServerVariable
 from open_api.utility_classes import Extensions, ManagedList
-from open_api.utility_functions import validate_url
 
-class Server(OpenAPIObject):
-    """Object representation of a single :term:`Server`."""
+class ServerVariable(OpenAPIObject):
+    """Object representation of a :term:`Server Variable` object."""
 
     def __init__(self, *args, **kwargs):
-        self._url = None
+        # Required
+        self._default = None
+        self._name = None
+
+        # Not Required
+        self._enum = None
         self._description = None
-        self._variables = None
         self._extensions = None
 
         super().__init__(*args, **kwargs)
 
     @property
-    def url(self):
-        """A URL to the target host.
-
-        .. note::
-
-          Supports :term:`Server Variables` and may be relative, to indicate that the host
-          location is relative to the location where the OpenAPI document is being served.
-          Variable substitutions will be made when a variable is named in ``{`` brackets
-          ``}``.
+    def name(self):
+        """The name given to the server variable.
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._url
+        return self._name
 
-    @url.setter
-    def url(self, value):
-        self._url = validate_url(value, allow_empty = True, allow_special_ips = True)
+    @name.setter
+    def name(self, value):
+        self._name = validators.string(value, allow_empty = True)
 
     @property
-    def variables(self):
-        """A collection of :class:`ServerVariable` objects that are used as substition
-        values within the object's URL.
+    def default(self):
+        """The default value to use for substitution.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+        """
+        return self._default
+
+    @default.setter
+    def default(self, value):
+        self._default = validators.string(value, allow_empty = True)
+
+    @property
+    def enum(self):
+        """A collection of string values that can be used for substitution if options are
+        limited by the API.
 
         :rtype: :class:`ManagedList` (subclass of :class:`list <python:list>`) of
           :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._variables
+        return self._enum
 
-    @variables.setter
-    def variables(self, value):
+    @enum.setter
+    def enum(self, value):
         if not value:
             value = None
         else:
-            if checkers.is_type(value, 'ServerVariable'):
+            if checkers.is_string(value):
                 value = [value]
             if checkers.is_type(value, list) and not checkers.is_type(value,
                                                                       'ManagedList'):
+                value = [validators.string(x, allow_empty = False, coerce_value = True)
+                         for x in value]
                 value = ManagedList(*value)
 
             if not checkers.is_type(value, 'ManagedList'):
-                raise ValueError('value must be a ServerVariable, list, or ManagedList. '
-                                 'Was: %s' % value.__class__.__name__)
+                raise ValueError('value must be a str, list, or ManagedList. Was: %s' %
+                                 value.__class__.__name__)
 
-            for item in value:
-                if not checkers.is_type(item, 'ServerVariable'):
-                    raise ValueError('items must be a ServerVariable object. Was: %s'
-                                     % item.__class__.__name__)
-
-        self._variables = value
+        self._enum = value
 
     def to_dict(self, **kwargs):
         """Return a :class:`dict <python:dict>` representation of the object.
@@ -80,13 +84,10 @@ class Server(OpenAPIObject):
         :rtype: :class:`dict <python:dict>` / :obj:`None <python:None>`
         """
         output = {
-            'url': self.url,
+            'default': self.default,
             'description': self.description,
-            'variables': None
+            'enum': self.enum
         }
-        if self.variables is not None:
-            output['variables'] = self.variables.add_to_dict(output['variables'],
-                                                             **kwargs)
         if self.extensions is not None:
             output = self.extensions.add_to_dict(output, **kwargs)
 
@@ -94,36 +95,30 @@ class Server(OpenAPIObject):
 
     @classmethod
     def new_from_dict(cls, obj, **kwargs):
-        """Create a new :class:`Server` object from a :class:`dict <python:dict>`.
+        """Create a new :class:`ServerVariable` object from a :class:`dict <python:dict>`.
 
         :param obj: A :class:`dict <python:dict>` that contains the extension
           properties.
         :type obj: :class:`dict <python:dict>`
 
-        :returns: :class:`Server` object
-        :rtype: :class:`Server`
+        :returns: :class:`ServerVariable` object
+        :rtype: :class:`ServerVariable`
         """
         obj = validators.dict(obj, allow_empty = True)
         if not obj:
             obj = {}
 
-        url = obj.pop('url', None)
+        default = obj.pop('default', None)
         description = obj.pop('description', None)
-        variables = obj.pop('variables', None)
-        variable_list = []
-        if variables:
-            for key in variables:
-                variable = ServerVariable.new_from_dict(variables[key], **kwargs)
-                variable.name = key
-                variable_list.append(variable)
+        enum = obj.pop('enum', None)
         if obj:
             extensions = Extensions.new_from_dict(obj, **kwargs)
         else:
             extensions = None
 
-        output = cls(url = url,
+        output = cls(default = default,
                      description = description,
-                     variables = variable_list,
+                     enum = enum,
                      extensions = extensions)
 
         return output
@@ -145,23 +140,39 @@ class Server(OpenAPIObject):
         if not input_data:
             input_data = {}
 
-        if 'url' in input_data:
-            self.url = input_data.pop('url')
+        if 'default' in input_data:
+            self.default = input_data.pop('default')
         if 'description' in input_data:
             self.description = input_data.pop('description')
-        if input_data and 'variables' in input_data:
-            variables = input_data.pop('variables', {})
-            for key in variables:
-                selected_variable = variables.pop(key)
-                for item in self.variables:
-                    if item.name == key:
-                        item.update_from_dict(selected_variable)
-            self.variables.extend([ServerVariable.new_from_dict(x) for x in variables])
+        if 'enum' in input_data:
+            self.enum = input_data.pop('enum')
 
         if input_data and self.extensions:
             self.extensions.update_from_dict(input_data)
         elif input_data:
             self.extensions = input_data
+
+    def add_to_dict(self, obj, **kwargs):
+        """Add a :class:`dict <python:dict>` representation of the :class:`ServerVariable`
+        to ``obj``.
+
+        :param obj: The :class:`dict <python:dict>` to which the :class:`ServerVariable`
+          will be added.
+        :type obj: :class:`dict <python:dict>`
+
+        :returns: ``obj`` with the :class:`dict <python:dict>` representation of the
+          :class:`ServerVariable` instance as a key/value pair
+        :rtype: :class:`dict <python:dict>`
+
+        :raises ValueError: if ``obj`` is not a :class:`dict <python:dict>`
+        """
+        obj = validators.dict(obj, allow_empty = True)
+        if not obj:
+            obj = {}
+
+        obj[self.name] = self.to_dict(**kwargs)
+
+        return obj
 
     @property
     def is_valid(self):
@@ -170,15 +181,7 @@ class Server(OpenAPIObject):
 
         :rtype: :class:`bool <python:bool>`
         """
-        is_valid = self.url is not None and \
-                   (self.extensions is None or self.extensions.is_valid)
-
-        if not is_valid:
+        if not self.default:
             return False
 
-        if self.variables:
-            for variable in self.variables:
-                if not variable.is_valid:
-                    return False
-
-        return is_valid
+        return True
