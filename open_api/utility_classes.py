@@ -42,7 +42,7 @@ class Markup(str):
         return str_obj
 
     def __getattribute__(self, name):
-        if name in dir(str):
+        if not name.startswith('__') and name in dir(str):
             def method(self, *args, **kwargs):
                 value = getattr(super(), name)(*args, **kwargs)
                 if isinstance(value, str):
@@ -144,17 +144,14 @@ class Extensions(dict):
     ``x-<extension-name>`` pattern defined by the OpenAPI Specification.
     """
 
-    def __getattribute__(self, name):
+    def __getattr__(self, name):
         if name.startswith('x-'):
             return self[name[2:]]
 
-        return self[name]
+        if name in self:
+            return self[name]
 
-    def __setattr__(self, name, value):
-        if name.startswith('x-'):
-            self[name[2:]] = value
-        else:
-            self[name] = value
+        return super(Extensions, self).__getattr__(name)
 
     def __delitem__(self, key):
         if key.startswith('x-'):
@@ -164,9 +161,15 @@ class Extensions(dict):
 
     def __getitem__(self, name):
         if name.startswith('x-'):
-            return self[name[2:]]
+            return self.__getitem__(name[2:])
 
-        return self[name]
+        if name.startswith('__') and name.endswith('__') and hasattr(self, name):
+            return getattr(self, name)
+
+        return super(Extensions, self).__getitem__(name)
+
+    def get(self, name, default = None):
+        return self.__getitem__(name) or default
 
     def __setitem__(self, name, value):
         if name.startswith('x-'):

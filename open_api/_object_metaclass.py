@@ -34,7 +34,7 @@ class OpenAPIObject(object):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
-        super().__init__(*args)
+        super(OpenAPIObject, self).__init__(*args)
 
 
     @property
@@ -55,10 +55,10 @@ class OpenAPIObject(object):
 
     @description.setter
     def description(self, value):
-        if checkers.is_type(value, str) and not checkers.is_type(value, Markup):
+        if checkers.is_type(value, str) and not isinstance(value, Markup):
             value = Markup(value)
 
-        if checkers.is_type(value, Markup):
+        if isinstance(value, Markup):
             self._description = value
         else:
             raise ValueError('value must be either a string or a Markup object. '
@@ -80,7 +80,9 @@ class OpenAPIObject(object):
 
     @extensions.setter
     def extensions(self, value):
-        if checkers.is_type(value, 'Extensions'):
+        if not value:
+            self._extensions = None
+        elif checkers.is_type(value, 'Extensions'):
             self._extensions = value
         elif checkers.is_dict(value):
             value = Extensions.new_from_dict(value)

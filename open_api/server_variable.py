@@ -105,18 +105,21 @@ class ServerVariable(OpenAPIObject):
         :rtype: :class:`ServerVariable`
         """
         obj = validators.dict(obj, allow_empty = True)
-        if not obj:
-            obj = {}
+        copied_obj = {}
+        for key in obj:
+            copied_obj[key] = obj[key]
 
-        default = obj.pop('default', None)
-        description = obj.pop('description', None)
-        enum = obj.pop('enum', None)
+        name = copied_obj.pop('name', None)
+        default = copied_obj.pop('default', None)
+        description = copied_obj.pop('description', None)
+        enum = copied_obj.pop('enum', None)
         if obj:
-            extensions = Extensions.new_from_dict(obj, **kwargs)
+            extensions = Extensions.new_from_dict(copied_obj, **kwargs)
         else:
             extensions = None
 
-        output = cls(default = default,
+        output = cls(name = name,
+                     default = default,
                      description = description,
                      enum = enum,
                      extensions = extensions)
@@ -140,6 +143,8 @@ class ServerVariable(OpenAPIObject):
         if not input_data:
             input_data = {}
 
+        if 'name' in input_data:
+            self.name = input_data.pop('name')
         if 'default' in input_data:
             self.default = input_data.pop('default')
         if 'description' in input_data:
