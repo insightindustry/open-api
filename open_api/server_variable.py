@@ -140,22 +140,23 @@ class ServerVariable(OpenAPIObject):
 
         """
         input_data = validators.dict(input_data, allow_empty = True)
-        if not input_data:
-            input_data = {}
+        copied_input_data = {}
+        for key in input_data:
+            copied_input_data[key] = input_data[key]
 
-        if 'name' in input_data:
-            self.name = input_data.pop('name')
-        if 'default' in input_data:
-            self.default = input_data.pop('default')
-        if 'description' in input_data:
-            self.description = input_data.pop('description')
-        if 'enum' in input_data:
-            self.enum = input_data.pop('enum')
+        if 'name' in copied_input_data:
+            self.name = copied_input_data.get('name')
+        if 'default' in copied_input_data:
+            self.default = copied_input_data.get('default')
+        if 'description' in copied_input_data:
+            self.description = copied_input_data.get('description')
+        if 'enum' in copied_input_data:
+            self.enum = copied_input_data.get('enum')
 
-        if input_data and self.extensions:
-            self.extensions.update_from_dict(input_data)
+        if copied_input_data and self.extensions:
+            self.extensions.update_from_dict(copied_input_data)
         elif input_data:
-            self.extensions = input_data
+            self.extensions = copied_input_data
 
     def add_to_dict(self, obj, **kwargs):
         """Add a :class:`dict <python:dict>` representation of the :class:`ServerVariable`
