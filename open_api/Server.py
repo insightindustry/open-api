@@ -108,7 +108,6 @@ class Server(OpenAPIObject):
         for key in obj:
             copied_obj[key] = obj[key]
 
-        name = copied_obj.pop('name', None)
         url = copied_obj.pop('url', None)
         print(url)
         description = copied_obj.pop('description', None)
@@ -119,8 +118,7 @@ class Server(OpenAPIObject):
         else:
             extensions = None
 
-        output = cls(name = name,
-                     url = url,
+        output = cls(url = url,
                      description = description,
                      extensions = extensions)
 
