@@ -11,7 +11,7 @@ Tests for the :class:`Contact` class.
 
 import pytest
 
-from open_api.contact import Contact
+from open_api.info import Contact
 from open_api.utility_classes import Markup, ManagedList
 
 

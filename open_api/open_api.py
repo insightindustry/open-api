@@ -17,6 +17,7 @@ import yaml
 from validator_collection import validators, checkers
 
 from open_api.Server import Server
+from open_api.info import Info, License, Contact
 from open_api.utility_classes import Markup, Extensions, ManagedList
 from open_api.utility_functions import parse_json, parse_yaml
 
@@ -28,23 +29,7 @@ class OpenAPI(object):
 
         # Required
         self._openapi_version = '3.0.2'
-        self._info_title = None
-        self._info_version = None
-
-        # Not Required
-        self._info_description = None
-        self._info_terms_of_service = None
-
-        self._info_contact_name = None
-        self._info_contact_url = None
-        self._info_contact_email = None
-        self._info_contact_extensions = None
-
-        self._info_license_name = None
-        self._info_license_url = None
-        self._info_license_extensions = None
-
-        self._info_extensions = None
+        self._info = None
 
         self._servers = None
 
@@ -82,12 +67,17 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_title
+        if not self._info:
+            return None
+
+        return self._info.title
 
     @title.setter
     def title(self, value):
-        value = validators.string(value, allow_empty = True)
-        self._info_title = value
+        if not self._info:
+            self._info = Info(title = value)
+        else:
+            self._info.title = value
 
     @property
     def description(self):
@@ -98,18 +88,17 @@ class OpenAPI(object):
         :rtype: :class:`Markup <open_api.utility_classes.Markup>` /
           :obj:`None <python:None>`
         """
-        return self._info_description
+        if not self._info:
+            return None
+
+        return self._info.description
 
     @description.setter
     def description(self, value):
-        if checkers.is_type(value, str) and not checkers.is_type(value, Markup):
-            value = Markup(value)
-
-        if checkers.is_type(value, Markup):
-            self._info_description = value
+        if not self._info:
+            self._info = Info(description = value)
         else:
-            raise ValueError('value must be either a string or a Markup object. '
-                             'Was: {}'.format(value.__class__.__name__))
+            self._info.description = value
 
     @property
     def terms_of_service(self):
@@ -122,13 +111,17 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_terms_of_service
+        if not self._info:
+            return None
+
+        return self._info.terms_of_service
 
     @terms_of_service.setter
     def terms_of_service(self, value):
-        self._info_terms_of_service = validators.url(value,
-                                                     allow_empty = True,
-                                                     allow_special_ips = True)
+        if not self._info:
+            self._info = Info(terms_of_service = value)
+        else:
+            self._info.terms_of_service = value
 
     @property
     def contact_name(self):
@@ -137,11 +130,19 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_contact_name
+        if not self._info or not self._info.contact:
+            return None
+
+        return self._info.contact.name
 
     @contact_name.setter
     def contact_name(self, value):
-        self._info_contact_name = validators.string(value, allow_empty = True)
+        if not self._info or not self._info.contact:
+            self._info = Info(contact = Contact(name = value))
+        elif not self._info.contact:
+            self._info.contact = Contact(name = value)
+        else:
+            self._info.contact.name = value
 
     @property
     def contact_url(self):
@@ -150,13 +151,19 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_contact_url
+        if not self._info or not self._info.contact:
+            return None
+
+        return self._info.contact.url
 
     @contact_url.setter
     def contact_url(self, value):
-        self._info_contact_url = validators.url(value,
-                                                allow_empty = True,
-                                                allow_special_ips = True)
+        if not self._info or not self._info.contact:
+            self._info = Info(contact = Contact(url = value))
+        elif not self._info.contact:
+            self._info.contact = Contact(url = value)
+        else:
+            self._info.contact.url = value
 
     @property
     def contact_email(self):
@@ -165,40 +172,20 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_contact_email
+        if not self._info or not self._info.contact:
+            return None
+
+        return self._info.contact.email
 
     @contact_email.setter
     def contact_email(self, value):
-        self._info_contact_email = validators.email(value, allow_empty = True)
-
-    @property
-    def contact_extensions(self):
-        """Collection of :term:`Specification Extensions` that have been applied to the
-        contact information for the API. Defaults to :obj:`None <python:None>`.
-
-        :rtype: :class:`Extensions` / :obj:`None <python:None>`
-        """
-        return self._info_contact_extensions
-
-    @contact_extensions.setter
-    def contact_extensions(self, value):
-        if checkers.is_type(value, 'Extensions'):
-            self._info_contact_extensions = value
-        elif checkers.is_dict(value):
-            value = Extensions.new_from_dict(value)
-            self._info_contact_extensions = Extensions.new_from_dict(value)
+        if not self._info or not self._info.contact:
+            self._info = Info(contact = Contact(email = value))
+        elif not self._info.contact:
+            self._info.contact = Contact(email = value)
         else:
-            try:
-                value = parse_json(value)
-            except ValueError:
-                try:
-                    value = parse_yaml(value)
-                except ValueError:
-                    raise ValueError('value is not a valid Specification Extensions '
-                                     'object, compatible dict, JSON, or YAML. Was: %s'
-                                     % value.__class__.__name__)
+            self._info.contact.email = value
 
-            self._info_contact_extensions = Extensions.new_from_dict(value)
 
     @property
     def license_name(self):
@@ -207,11 +194,19 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_license_name
+        if not self._info or not self._info.license:
+            return None
+
+        return self._info.license.name
 
     @license_name.setter
     def license_name(self, value):
-        self._info_license_name = validators.string(value, allow_empty = True)
+        if not self._info or not self._info.license:
+            self._info = Info(license = Licese(name = value))
+        elif not self._info.license:
+            self._info.license = License(name = value)
+        else:
+            self._info.license.name = value
 
     @property
     def license_url(self):
@@ -220,42 +215,19 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_license_url
+        if not self._info or not self._info.license:
+            return None
+
+        return self._info.license.url
 
     @license_url.setter
     def license_url(self, value):
-        self._info_license_url = validators.url(value,
-                                                allow_empty = True,
-                                                allow_special_ips = True)
-
-    @property
-    def license_extensions(self):
-        """Collection of :term:`Specification Extensions` that have been applied to the
-        license information for the API. Defaults to :obj:`None <python:None>`.
-
-        :rtype: :class:`Extensions` / :obj:`None <python:None>`
-        """
-        return self._info_license_extensions
-
-    @license_extensions.setter
-    def license_extensions(self, value):
-        if checkers.is_type(value, 'Extensions'):
-            self._info_license_extensions = value
-        elif checkers.is_dict(value):
-            value = Extensions.new_from_dict(value)
-            self._info_license_extensions = Extensions.new_from_dict(value)
+        if not self._info or not self._info.license:
+            self._info = Info(license = Licese(url = value))
+        elif not self._info.license:
+            self._info.license = License(url = value)
         else:
-            try:
-                value = parse_json(value)
-            except ValueError:
-                try:
-                    value = parse_yaml(value)
-                except ValueError:
-                    raise ValueError('value is not a valid Specification Extensions '
-                                     'object, compatible dict, JSON, or YAML. Was: %s'
-                                     % value.__class__.__name__)
-
-            self._info_license_extensions = Extensions.new_from_dict(value)
+            self._info.license.url = value
 
     @property
     def version(self):
@@ -263,42 +235,17 @@ class OpenAPI(object):
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
-        return self._info_version
+        if not self._info:
+            return None
+
+        return self._info.version
 
     @version.setter
     def version(self, value):
-        self._info_version = validators.string(value, allow_empty = True)
-
-    @property
-    def info_extensions(self):
-        """Collection of :term:`Specification Extensions` that have been applied to the
-        ``info`` block information for the API. Defaults to :obj:`None <python:None>`.
-
-        :rtype: :class:`Extensions` / :obj:`None <python:None>`
-        """
-        return self._info_extensions
-
-    @info_extensions.setter
-    def info_extensions(self, value):
-        if checkers.is_type(value, 'Extensions'):
-            self._info_extensions = value
-        elif checkers.is_dict(value):
-            value = Extensions.new_from_dict(value)
-            self._info_extensions = value
+        if not self._info or not self._info:
+            self._info = Info(version = value)
         else:
-            try:
-                value = parse_json(value)
-            except ValueError:
-                try:
-                    value = parse_yaml(value)
-                except ValueError:
-                    raise ValueError('value is not a valid Specification Extensions '
-                                     'object, compatible dict, JSON, or YAML. Was: %s'
-                                     % value.__class__.__name__)
-
-            value = Extensions.new_from_dict(value)
-
-            self._info_extensions = value
+            self._info.version = value
 
     @property
     def servers(self):
@@ -423,47 +370,15 @@ class OpenAPI(object):
         """
         output = {
             'openapi': self.openapi_version,
-            'info': {
-                'title': self.title,
-                'description': self.description,
-                'termsOfService': self.terms_of_service,
-                'contact': {
-                    'name': self.contact_name,
-                    'url': self.contact_url,
-                    'email': self.contact_email
-                },
-                'license': {
-                    'name': self.license_name,
-                    'url': self.license_url
-                },
-                'version': self.version
-            },
+            'info': None,
             'externalDocs': {
                 'description': self.external_documentation_description,
                 'url': self.external_documentation_url
             }
         }
 
-        if self.contact_extensions is not None:
-            output['info']['contact'] = self.contact_extensions.add_to_dict(
-                output['info']['contact'],
-                *args,
-                **kwargs
-            )
-        if not (self.contact_name and \
-                self.contact_url and \
-                self.contact_email and \
-                self.contact_extensions):
-            del output['info']['contact']
-
-        if self.license_extensions is not None:
-            output['info']['license'] = self.license_extensions.add_to_dict(
-                output['info']['license'],
-                *args,
-                **kwargs
-            )
-        if not (self.license_name and self.license_url and self.license_extensions):
-            del output['info']['license']
+        if self._info is not None:
+            output['info'] = self._info.to_dict(*args, **kwargs)
 
         if self.external_documentation_extensions is not None:
             output['externalDocs'] = self.external_documentation_extensions.add_to_dict(
