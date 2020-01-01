@@ -18,7 +18,8 @@ except ImportError:
 import yaml
 from validator_collection import validators, checkers
 
-from open_api.utility_classes import Markup, Extensions
+from open_api.utility_classes.Markup import Markup
+from open_api.utility_classes.Extensions import Extensions
 from open_api.utility_functions import parse_json, parse_yaml, add_metaclass
 
 @add_metaclass(abc.ABCMeta)

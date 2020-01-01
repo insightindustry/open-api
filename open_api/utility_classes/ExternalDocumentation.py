@@ -7,34 +7,20 @@
 
 from validator_collection import validators, checkers
 
-from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
+from open_api.utility_classes.OpenAPIObject import OpenAPIObject
 
-class License(OpenAPIObject):
-    """Object representation of the license used for the API."""
+class ExternalDocumentation(OpenAPIObject):
+    """Object representation of a reference to External Documentation."""
 
     def __init__(self, *args, **kwargs):
-        self._name = None
         self._url = None
         self._extensions = None
 
         super().__init__(*args, **kwargs)
 
     @property
-    def name(self):
-        """The license name used for the API. **REQUIRED**
-
-        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
-        """
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = validators.string(value, allow_empty = True)
-
-
-    @property
     def url(self):
-        """The URL pointing to the text of the license.
+        """The URL for the target documentation. **REQUIRED**
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
@@ -52,7 +38,6 @@ class License(OpenAPIObject):
         :rtype: :class:`dict <python:dict>`
         """
         output = {
-            'name': self.name,
             'url': self.url
         }
         if self.extensions is not None:
@@ -75,15 +60,15 @@ class License(OpenAPIObject):
         for key in obj:
             copied_obj[key] = obj[key]
 
-        name = copied_obj.pop('name', None)
         url = copied_obj.pop('url', None)
+        description = copied_obj.pop('description', None)
         if obj:
             extensions = Extensions.new_from_dict(copied_obj, **kwargs)
         else:
             extensions = None
 
-        output = cls(name = name,
-                     url = url,
+        output = cls(url = url,
+                     description = description,
                      extensions = extensions)
 
         return output
@@ -105,10 +90,10 @@ class License(OpenAPIObject):
         for key in input_data:
             copied_obj[key] = input_data[key]
 
-        if 'name' in copied_obj:
-            self.name = copied_obj.pop('name')
         if 'url' in copied_obj:
             self.url = copied_obj.pop('url')
+        if 'description' in copied_obj:
+            self.description = copied_obj.pop('description')
 
         if copied_obj and self.extensions:
             self.extensions.update_from_dict(copied_obj)
@@ -122,4 +107,4 @@ class License(OpenAPIObject):
 
         :rtype: :class:`bool <python:bool>`
         """
-        return self.name is not None
+        return self.url is not None

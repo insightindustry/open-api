@@ -19,11 +19,15 @@ from validator_collection.errors import MaximumValueError, MinimumValueError
 import pypandoc
 
 from open_api.utility_classes.Extensions import Extensions
+from open_api.utility_classes.ExternalDocumentation import ExternalDocumentation
 from open_api.utility_classes.ManagedList import ManagedList
 from open_api.utility_classes.Markup import Markup
+from open_api.utility_classes.OpenAPIObject import OpenAPIObject
 
 __all__ = [
     'Extensions',
+    'ExternalDocumentation',
     'ManagedList',
-    'Markup'
+    'Markup',
+    'OpenAPIObject'
 ]

@@ -7,9 +7,8 @@
 
 from validator_collection import validators, checkers
 
-from open_api._object_metaclass import OpenAPIObject
 from open_api.server.ServerVariable import ServerVariable
-from open_api.utility_classes import Extensions, ManagedList
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 from open_api.utility_functions import validate_url
 
 class Server(OpenAPIObject):

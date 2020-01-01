@@ -33,10 +33,7 @@ class OpenAPI(object):
 
         self._servers = None
 
-        self._external_documentation_description = None
-        self._external_documentation_url = None
-        self._external_documentation_extensions = None
-
+        self._external_documentation = None
 
     @property
     def openapi_version(self):
@@ -291,71 +288,25 @@ class OpenAPI(object):
         self._servers = ManagedList(*value)
 
     @property
-    def external_documentation_description(self):
-        """A short description of the external documentation.
+    def external_documentation(self):
+        """A reference to external documentation for the API.
 
-        Supports markup expressed in :term:`CommonMark` or :term:`ReStructuredText`.
-
-        :rtype: :class:`Markup <open_api.utility_classes.Markup>` /
-          :obj:`None <python:None>`
+        :rtype: :class:`ExternalDocumentation` / :obj:`None <python:None>`
         """
-        return self._external_documentation_description
+        return self._external_documentation
 
-    @external_documentation_description.setter
-    def external_documentation_description(self, value):
-        if checkers.is_type(value, str) and not checkers.is_type(value, Markup):
-            value = Markup(value)
-
-        if checkers.is_type(value, Markup):
-            self._external_documentation_url = value
+    @external_documentation.setter
+    def external_documentation(self, value):
+        if not value:
+            self._external_documentation = None
         else:
-            raise ValueError('value must be either a string or a Markup object. '
-                             'Was: {}'.format(value.__class__.__name__))
-
-    @property
-    def external_documentation_url(self):
-        """The URL where external documentation may be accessed.
-
-        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
-        """
-        return self._external_documentation_url
-
-    @external_documentation_url.setter
-    def external_documentation_url(self, value):
-        self._external_documentation_url = validators.url(value, allow_empty = True)
-
-    @property
-    def external_documentation_extensions(self):
-        """Collection of :term:`Specification Extensions` that have been applied to the
-        ``external_documentation`` block for the API. Defaults to
-        :obj:`None <python:None>`.
-
-        :rtype: :class:`Extensions` / :obj:`None <python:None>`
-        """
-        return self._external_documentation_extensions
-
-    @external_documentation_extensions.setter
-    def external_documentation_extensions(self, value):
-        if checkers.is_type(value, 'Extensions'):
-            self._external_documentation_extensions = value
-        elif checkers.is_dict(value):
-            value = Extensions.new_from_dict(value)
-            self._external_documentation_extensions = value
-        else:
-            try:
-                value = parse_json(value)
-            except ValueError:
-                try:
-                    value = parse_yaml(value)
-                except ValueError:
-                    raise ValueError('value is not a valid Specification Extensions '
-                                     'object, compatible dict, JSON, or YAML. Was: %s'
-                                     % value.__class__.__name__)
-
-            value = Extensions.new_from_dict(value)
-
-            self._external_documentation_extensions = value
-
+            if checkers.is_dict(value):
+                value = ExternalDocumentation.new_from_dict(value)
+            if checkers.is_type(value, 'ExternalDocumentation'):
+                self._external_documentation = value
+            else:
+                raise ValueError('value must be an ExternalDocumentation object'
+                                 ' or compatible dict, but was: %s' % value)
 
 
     def to_dict(self, *args, **kwargs):
@@ -371,28 +322,15 @@ class OpenAPI(object):
         output = {
             'openapi': self.openapi_version,
             'info': None,
-            'externalDocs': {
-                'description': self.external_documentation_description,
-                'url': self.external_documentation_url
-            }
+            'externalDocs': None
         }
 
-        if self._info is not None:
+        if self.info is not None:
             output['info'] = self._info.to_dict(*args, **kwargs)
 
-        if self.external_documentation_extensions is not None:
-            output['externalDocs'] = self.external_documentation_extensions.add_to_dict(
-                output['externalDocs'],
-                *args,
-                **kwargs
-            )
-        if not (self.external_documentation_description and \
-                self.external_documentation_url and \
-                self.external_documentation_extensions):
-            del output['externalDocs']
-
-
-
+        if self.external_documentation is not None:
+            output['externalDocs'] = self.external_documentation.to_dict(*args,
+                                                                         **kwargs)
 
         return output
 

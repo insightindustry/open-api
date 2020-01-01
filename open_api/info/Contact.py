@@ -7,8 +7,7 @@
 
 from validator_collection import validators, checkers
 
-from open_api._object_metaclass import OpenAPIObject
-from open_api.utility_classes import Extensions, ManagedList
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 
 class Contact(OpenAPIObject):
     """Object representation of contact information for the API."""

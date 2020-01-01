@@ -7,10 +7,9 @@
 
 from validator_collection import validators, checkers
 
-from open_api._object_metaclass import OpenAPIObject
 from open_api.info.Contact import Contact
 from open_api.info.License import License
-from open_api.utility_classes import Extensions, ManagedList
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 
 class Info(OpenAPIObject):
     """Object representation of an :term:`Info` object"""
