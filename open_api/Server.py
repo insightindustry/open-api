@@ -61,7 +61,7 @@ class Server(OpenAPIObject):
                 value = [value]
             if checkers.is_type(value, list) and not checkers.is_type(value,
                                                                       'ManagedList'):
-                value = ManagedList(*value)
+                value = ManagedList(value)
 
             if not checkers.is_type(value, 'ManagedList'):
                 raise ValueError('value must be a ServerVariable, list, or ManagedList. '
@@ -104,27 +104,28 @@ class Server(OpenAPIObject):
         :rtype: :class:`Server`
         """
         obj = validators.dict(obj, allow_empty = True)
-        if not obj:
-            obj = {}
+        copied_obj = {}
+        for key in obj:
+            copied_obj[key] = obj[key]
 
-        url = obj.pop('url', None)
-        description = obj.pop('description', None)
-        variables = obj.pop('variables', None)
+        name = copied_obj.pop('name', None)
+        url = copied_obj.pop('url', None)
+        print(url)
+        description = copied_obj.pop('description', None)
+        variables = copied_obj.pop('variables', None)
         variable_list = []
-        if variables:
-            for key in variables:
-                variable = ServerVariable.new_from_dict(variables[key], **kwargs)
-                variable.name = key
-                variable_list.append(variable)
         if obj:
-            extensions = Extensions.new_from_dict(obj, **kwargs)
+            extensions = Extensions.new_from_dict(copied_obj, **kwargs)
         else:
             extensions = None
 
-        output = cls(url = url,
+        output = cls(name = name,
+                     url = url,
                      description = description,
-                     variables = variable_list,
                      extensions = extensions)
+
+        if variables:
+            output.variables = variables
 
         return output
 
@@ -142,15 +143,16 @@ class Server(OpenAPIObject):
 
         """
         input_data = validators.dict(input_data, allow_empty = True)
-        if not input_data:
-            input_data = {}
+        copied_obj = {}
+        for key in input_data:
+            copied_obj[key] = input_data[key]
 
-        if 'url' in input_data:
-            self.url = input_data.pop('url')
-        if 'description' in input_data:
-            self.description = input_data.pop('description')
-        if input_data and 'variables' in input_data:
-            variables = input_data.pop('variables', {})
+        if 'url' in copied_obj:
+            self.url = copied_obj.pop('url')
+        if 'description' in copied_obj:
+            self.description = copied_obj.pop('description')
+        if input_data and 'variables' in copied_obj:
+            variables = copied_obj.pop('variables', {})
             for key in variables:
                 selected_variable = variables.pop(key)
                 for item in self.variables:
@@ -158,10 +160,10 @@ class Server(OpenAPIObject):
                         item.update_from_dict(selected_variable)
             self.variables.extend([ServerVariable.new_from_dict(x) for x in variables])
 
-        if input_data and self.extensions:
-            self.extensions.update_from_dict(input_data)
-        elif input_data:
-            self.extensions = input_data
+        if copied_obj and self.extensions:
+            self.extensions.update_from_dict(copied_obj)
+        elif copied_obj:
+            self.extensions = copied_obj
 
     @property
     def is_valid(self):

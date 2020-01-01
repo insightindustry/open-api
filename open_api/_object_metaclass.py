@@ -58,10 +58,10 @@ class OpenAPIObject(object):
         if checkers.is_type(value, str) and not isinstance(value, Markup):
             value = Markup(value)
 
-        if isinstance(value, Markup):
+        if isinstance(value, (Markup, None.__class__)):
             self._description = value
         else:
-            raise ValueError('value must be either a string or a Markup object. '
+            raise ValueError('value must be either a string, a Markup object, or None. '
                              'Was: {}'.format(value.__class__.__name__))
 
     @property
