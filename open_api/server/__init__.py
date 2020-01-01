@@ -182,3 +182,8 @@ class Server(OpenAPIObject):
                     return False
 
         return is_valid
+
+__all__ = [
+    'Server',
+    'ServerVariable'
+]

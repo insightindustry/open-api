@@ -214,3 +214,9 @@ class Info(OpenAPIObject):
                    (self.extensions is None or self.extensions.is_valid)
 
         return is_valid
+
+__all__ = [
+    'Info',
+    'Contact',
+    'License'
+]
