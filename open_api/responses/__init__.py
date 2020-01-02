@@ -8,7 +8,7 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
-from open_api.paths.RequestBody import RequestBody
+from open_api.responses.Response import Response
 
 class Responses(dict):
     """A container for the expected responses of an operation. The container
@@ -472,5 +472,6 @@ class Responses(dict):
 
 
 __all__ = [
-    'Responses'
+    'Responses',
+    'Response'
 ]
