@@ -22,7 +22,6 @@ from open_api.utility_classes.Extensions import Extensions
 from open_api.utility_classes.ExternalDocumentation import ExternalDocumentation
 from open_api.utility_classes.ManagedList import ManagedList
 from open_api.utility_classes.Markup import Markup
-from open_api.utility_classes.MediaType import MediaType
 from open_api.utility_classes.OpenAPIObject import OpenAPIObject
 from open_api.utility_classes.Reference import Reference
 
@@ -31,7 +30,6 @@ __all__ = [
     'ExternalDocumentation',
     'ManagedList',
     'Markup',
-    'MediaType',
     'OpenAPIObject',
     'Reference'
 ]

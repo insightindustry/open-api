@@ -194,7 +194,7 @@ class MediaType(OpenAPIObject):
         examples = copied_obj.pop('examples', None)
         encoding = copied_obj.pop('encoding', None)
 
-        if obj:
+        if copied_obj:
             extensions = Extensions.new_from_dict(copied_obj, **kwargs)
         else:
             extensions = None
