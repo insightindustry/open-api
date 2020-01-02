@@ -11,8 +11,9 @@ Tests for the functions contained in :module:`utility_functions.py <utility_func
 import pytest
 
 from validator_collection._compat import basestring
+from validator_collection import checkers
 
-from open_api.utility_functions import validate_url
+from open_api.utility_functions import validate_url, traverse_dict
 
 
 @pytest.mark.parametrize('value, fails, allow_empty, allow_special_ips', [
@@ -214,3 +215,21 @@ def test_validate_url(value, fails, allow_empty, allow_special_ips):
     else:
         with pytest.raises((ValueError, TypeError)):
             value = validate_url(value, allow_empty = allow_empty)
+
+
+@pytest.mark.parametrize('content, target, expects, error', [
+    ({'test': 'value', 'test2': {'something': 'value', 'something2': {'level3': 123}}}, 'test', ['test'], None),
+    ({'test': 'value', 'test2': {'something': 'value', 'something2': {'level3': 123}}}, 'test2', ['test2'], None),
+    ({'test': 'value', 'test2': {'something': 'value', 'something2': {'level3': 123}}}, 'something', ['test2', 'something'], None),
+    ({'test': 'value', 'test2': {'something': 'value', 'something2': {'level3': 123}}}, 'level3', ['test2', 'something2', 'level3'], None),
+
+    ({'test': 'value', 'test2': {'something': 'value', 'something2': {'level3': 123}}}, 'missing-value', [], None),
+])
+def test_traverse_dict(content, target, expects, error):
+    if not error:
+        result = traverse_dict(content, target)
+        assert len(result) == len(expects)
+        assert checkers.are_equivalent(expects, result)
+    else:
+        with pytest.raises(error):
+            result = traverse_dict(content, target)

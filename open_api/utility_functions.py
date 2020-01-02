@@ -244,3 +244,56 @@ def add_metaclass(metaclass):
         return metaclass(cls.__name__, cls.__bases__, orig_vars)
 
     return wrapper
+
+
+def traverse_dict(content, target, parent_list = None):
+    """Traverse ``content`` looking for ``target``.
+
+    :param content: The :class:`dict <python:dict>` to traverse looking for
+      ``target``.
+    :type content: :class:`dict <python:dict>`
+
+    :param target: The :class:`dict <python:dict>` or the
+      :class:`str <python:str>` key value to look for in ``content``.
+    :type target: :class:`dict <python:dict>`
+
+    :param parent_list: The list of path items that preceded ``content`` being
+      evaluated. Defaults to :obj:`None <python:None>`
+    :type parent_list: :class:`list <python:list>` of :class:`str <python:str>` /
+      :obj:`None <python:None>`
+
+    :returns: The list of path components to resolve ``target_object``.
+    :rtype: :class:`list <python:list>` of :class:`str <python:str>`
+
+    :raises ValueError: if ``content`` is not a :class:`dict <python:dict>`
+    :raises ValueError: if ``target`` is not a :class:`dict <python:dict>`
+    """
+    if not checkers.is_dict(content):
+        raise ValueError('content must be a dict. Was: %s' % type(content))
+    if not checkers.is_dict(target) and not checkers.is_string(target):
+        raise ValueError('target must be a dict or str. Was: %s' % type(target))
+
+    path_list = []
+
+    for key in content:
+        path_item = key
+        value = content[key]
+        if path_item == target or checkers.are_equivalent(value, target):
+            if parent_list:
+                path_list.extend(parent_list)
+            path_list.append(path_item)
+            break
+
+        if checkers.is_dict(value):
+            if parent_list:
+                parent_list.append(path_item)
+            else:
+                parent_list = [path_item]
+            internal_path_list = traverse_dict(content = value,
+                                               target = target,
+                                               parent_list = parent_list)
+            if internal_path_list:
+                path_list.extend(internal_path_list)
+                break
+
+    return path_list
