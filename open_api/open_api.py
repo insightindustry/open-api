@@ -300,13 +300,32 @@ class OpenAPI(object):
         if not value:
             self._external_documentation = None
         else:
-            if checkers.is_dict(value):
-                value = ExternalDocumentation.new_from_dict(value)
-            if checkers.is_type(value, 'ExternalDocumentation'):
-                self._external_documentation = value
-            else:
-                raise ValueError('value must be an ExternalDocumentation object'
-                                 ' or compatible dict, but was: %s' % value)
+            if not checkers.is_type(value, 'ExternalDocumentation'):
+                try:
+                    value = ExternalDocumentation.new_from_dict(value)
+                except ValueError:
+                    raise ValueError('value must be an ExternalDocumentation object'
+                                     ' or compatible dict, but was: %s' % value)
+
+            self._external_documentation = value
+
+
+
+    @property
+    def is_valid(self):
+        """``True`` if the object is valid per the OpenAPI Specification.
+        Othwerise, ``False``.
+
+        :rtype: :class:`bool <python:bool>`
+        """
+        is_valid = True
+
+        # Operation objects:
+        ## TODO: Check Operation objects to see if they are valid.
+        ## TODO: Check Operation objects to see if they have unique operation_id values
+        ## TODO: Check each Operation object to see if it contains duplicate Parameters
+
+        return is_valid
 
 
     def to_dict(self, *args, **kwargs):

@@ -7,8 +7,9 @@
 
 from validator_collection import validators, checkers
 
-from open_api._object_metaclass import OpenAPIObject
-from open_api.utility_classes import Extensions, ManagedList
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
+from open_api.paths.RequestBody import RequestBody
+from open_api.paths.Operation import Operation
 
 class Paths(OpenAPIObject):
     """Object representation of a :term:`Paths` object.
@@ -139,7 +140,6 @@ class Paths(OpenAPIObject):
         return is_valid
 
 __all__ = [
-    'Info',
-    'Contact',
-    'License'
+    'Paths',
+    'RequestBody'
 ]
