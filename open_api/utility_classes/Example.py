@@ -8,6 +8,7 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes.ManagedList import ManagedList
+from open_api.utility_classes.Extensions import Extensions
 from open_api.utility_classes.OpenAPIObject import OpenAPIObject
 
 class Example(OpenAPIObject):
@@ -50,7 +51,17 @@ class Example(OpenAPIObject):
 
     @value.setter
     def value(self, value):
-        self._value = validators.string(value, allow_empty = True)
+        if value is None:
+            self._value = None
+        elif checkers.is_type(value, bool):
+            self._value = value
+        elif checkers.is_numeric(value, allow_empty = True):
+            self._value = value
+        else:
+            try:
+                self._value = validators.dict(value, allow_empty = True)
+            except (ValueError, TypeError):
+                self._value = validators.string(value, allow_empty = True)
 
 
     @property
@@ -59,6 +70,8 @@ class Example(OpenAPIObject):
         location/file.
 
         :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+        :raises ValueError: if value is not a path-like string or valid URL
         """
         return self._external_value
 
@@ -160,4 +173,7 @@ class Example(OpenAPIObject):
 
         :rtype: :class:`bool <python:bool>`
         """
+        if self.value and self.external_value:
+            return False
+
         return True
