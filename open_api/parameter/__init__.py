@@ -84,7 +84,7 @@ class Parameter(OpenAPIObject):
         self._location = value
 
     @property
-    def in(self):
+    def in_(self):
         """The location where the parameter is expected. **REQUIRED**
 
         .. note::
@@ -95,8 +95,8 @@ class Parameter(OpenAPIObject):
         """
         return self.location
 
-    @in.setter
-    def in(self, value):
+    @in_.setter
+    def in_(self, value):
         self.location = value
 
     @property
@@ -372,7 +372,7 @@ class Parameter(OpenAPIObject):
                 elif checkers.is_dict(value[key]):
                     content_dict[key] = MediaType.new_from_dict(value[key])
                 elif checkers.is_type(value[key], 'MediaType'):
-                    content_dict[key] = value[]
+                    content_dict[key] = value[key]
                 else:
                     raise ValueError('value must be a MediaType or compatible '
                                      'dict. Was: %s' % type(value[key]))

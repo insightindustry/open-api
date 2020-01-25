@@ -59,7 +59,7 @@ class Response(OpenAPIObject):
                                 raise ValueError('value expects a Header instance, '
                                                  'Reference instance, or compatible '
                                                  'dict. Was: %s' % type(value[key]))
-                self._headers = header_dict
+            self._headers = header_dict
 
     @property
     def content(self):
@@ -93,7 +93,7 @@ class Response(OpenAPIObject):
                 elif checkers.is_dict(value[key]):
                     content_dict[key] = MediaType.new_from_dict(value[key])
                 elif checkers.is_type(value[key], 'MediaType'):
-                    content_dict[key] = value[]
+                    content_dict[key] = value[key]
                 else:
                     raise ValueError('value must be a MediaType or compatible '
                                      'dict. Was: %s' % type(value[key]))
