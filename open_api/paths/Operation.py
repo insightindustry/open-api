@@ -113,7 +113,7 @@ class Operation(OpenAPIObject):
         return self._operation_id
 
     @operation_id.setter
-    def operation_id(self):
+    def operation_id(self, value):
         self._operation_id = validators.variable_name(value, allow_empty = True)
 
     @property
