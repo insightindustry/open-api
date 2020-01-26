@@ -8,6 +8,7 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes.OpenAPIObject import OpenAPIObject
+from open_api.utility_classes.Extensions import Extensions
 
 class ExternalDocumentation(OpenAPIObject):
     """Object representation of a reference to External Documentation."""
