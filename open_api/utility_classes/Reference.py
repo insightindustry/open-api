@@ -20,6 +20,9 @@ class Reference(OpenAPIObject):
         self._target = None
         self._external_reference = None
 
+        if '$ref' in kwargs:
+            kwargs['target'] = kwargs.pop('$ref')
+
         super().__init__(*args, **kwargs)
 
     @property
@@ -180,9 +183,8 @@ class Reference(OpenAPIObject):
         :returns: :class:`Reference` object
         :rtype: :class:`Reference`
         """
-        obj = validators.dict(obj, allow_empty = True)
-        copied_obj = {}
-        path_string = copied_obj.get('$ref')
+        copied_obj = validators.dict(obj, allow_empty = True)
+        path_string = copied_obj.get('$ref') or copied_obj.get('target')
         target = None
         external_reference = None
 
@@ -201,16 +203,20 @@ class Reference(OpenAPIObject):
             target = path_list[-1]
             external_reference = None
 
-        output = cls(target = target,
-                     external_reference = external_reference)
+        try:
+            output = cls(target = target,
+                         external_reference = external_reference)
+        except TypeError:
+            output = cls(target = external_reference,
+                         external_reference = None)
 
         return output
 
-    def update_from_dict(self, input_data):
+    def update_from_dict(self, obj):
         """Update the object representation based on the input data provided.
 
-        :param input_data: Collection of properties to update on the object.
-        :type input_data: :class:`dict <python:dict>`
+        :param obj: Collection of properties to update on the object.
+        :type obj: :class:`dict <python:dict>`
 
         .. note::
 
@@ -218,7 +224,32 @@ class Reference(OpenAPIObject):
           key on the instance will *not* be affected by this method.
 
         """
-        pass
+        copied_obj = validators.dict(obj, allow_empty = True)
+        path_string = copied_obj.get('$ref') or copied_obj.get('target')
+        target = None
+        external_reference = None
+
+        if not path_string:
+            target = None
+            external_reference = None
+        elif checkers.is_url(path_string) or checkers.is_pathlike(path_string):
+            target = None
+            external_reference = path_string
+        else:
+            if path_string.startswith('#'):
+                path_string = path_string[2:]
+            if path_string.endswidth('/'):
+                path_string = path_string[:-1]
+            path_list = path_string.split('/')
+            target = path_list[-1]
+            external_reference = None
+
+        try:
+            self.target = target
+            self.external_reference = external_reference
+        except TypeError:
+            self.target = external_reference
+            self.external_reference = None
 
     @property
     def is_valid(self):
