@@ -61,23 +61,23 @@ def test_Markup__init__(value, format, expected):
     ('# Heading Goes Here', 'commonmark', False, '# Heading Goes Here'),
 
     ('test123', 'rst', False, 'test123'),
-    ('******************\nHeading Goes Here\n******************', 'rst', False, '# Heading Goes Here'),
+    ('******************\nHeading Goes Here\n******************', 'rst', False, 'Heading Goes Here\n================='),
     ('# Heading Goes Here', 'rst', False, '\\# Heading Goes Here'),
 
     ('test123', 'gfm', False, 'test123'),
-    ('# Heading Goes Here', 'gfm', False, '# Heading Goes Here'),
+    ('# Heading Goes Here', 'gfm', False, 'Heading Goes Here\n================='),
 
     ## Github Flavor: True
     ('test123', None, True, 'test123'),
-    ('******************\nHeading Goes Here\n******************', None, True, '-----\n\nHeading Goes Here\n\n-----'),
-    ('# Heading Goes Here', None, True, '# Heading Goes Here'),
+    ('******************\nHeading Goes Here\n******************', None, True, '------------------------------------------------------------------------\n\nHeading Goes Here\n\n------------------------------------------------------------------------'),
+    ('# Heading Goes Here', None, True, 'Heading Goes Here\n================='),
 
     ('test123', 'commonmark', True, 'test123'),
-    ('******************\nHeading Goes Here\n******************', 'commonmark', True, '-----\n\nHeading Goes Here\n\n-----'),
-    ('# Heading Goes Here', 'commonmark', True, '# Heading Goes Here'),
+    ('******************\nHeading Goes Here\n******************', 'commonmark', True, '------------------------------------------------------------------------\n\nHeading Goes Here\n\n------------------------------------------------------------------------'),
+    ('# Heading Goes Here', 'commonmark', True, 'Heading Goes Here\n================='),
 
     ('test123', 'rst', True, 'test123'),
-    ('******************\nHeading Goes Here\n******************', 'rst', True, '# Heading Goes Here'),
+    ('******************\nHeading Goes Here\n******************', 'rst', True, 'Heading Goes Here\n================='),
     ('# Heading Goes Here', 'rst', True, '\\# Heading Goes Here'),
 
     ('test123', 'gfm', True, 'test123'),
