@@ -191,13 +191,13 @@ class Reference(OpenAPIObject):
         if not path_string:
             target = None
             external_reference = None
-        elif checkers.is_url(path_string) or checkers.is_pathlike(path_string):
+        elif checkers.is_url(path_string):
             target = None
             external_reference = path_string
         else:
             if path_string.startswith('#'):
                 path_string = path_string[2:]
-            if path_string.endswidth('/'):
+            if path_string.endswith('/'):
                 path_string = path_string[:-1]
             path_list = path_string.split('/')
             target = path_list[-1]
@@ -232,13 +232,13 @@ class Reference(OpenAPIObject):
         if not path_string:
             target = None
             external_reference = None
-        elif checkers.is_url(path_string) or checkers.is_pathlike(path_string):
+        elif checkers.is_url(path_string):
             target = None
             external_reference = path_string
         else:
             if path_string.startswith('#'):
                 path_string = path_string[2:]
-            if path_string.endswidth('/'):
+            if path_string.endswith('/'):
                 path_string = path_string[:-1]
             path_list = path_string.split('/')
             target = path_list[-1]
