@@ -8,6 +8,7 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes.OpenAPIObject import OpenAPIObject
+from open_api.utility_functions import traverse_dict
 
 class Reference(OpenAPIObject):
     """A simple object to allow referencing other components in the specification,
@@ -18,6 +19,7 @@ class Reference(OpenAPIObject):
     def __init__(self, *args, **kwargs):
         self._specification = None
         self._target = None
+        self._explicit_path = None
         self._external_reference = None
 
         if '$ref' in kwargs:
@@ -39,9 +41,13 @@ class Reference(OpenAPIObject):
 
     @specification.setter
     def specification(self, value):
-        if not checkers.is_type(value, 'OpenAPI'):
+        if value and not checkers.is_type(value, 'OpenAPI'):
+            value = validators.string(value, allow_empty = True)
+        elif value:
             raise ValueError('value must be an OpenAPI object. '
                              'Was: %s' % type(value))
+        else:
+            pass
 
         self._specification = value
 
@@ -95,6 +101,21 @@ class Reference(OpenAPIObject):
 
             self._external_reference = value
             self.target = None
+
+    @property
+    def explicit_path(self):
+        """The path (excluding the
+        :attr:`target <open_api.utility_classes.Reference.target>`) as expressed
+        explicitly when instantiating the :class:`Reference`.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+        """
+        return self._explicit_path
+
+    @explicit_path.setter
+    def explicit_path(self, value):
+        self._explicit_path = validators.string(value, allow_empty = True)
 
     @property
     def is_external(self):
@@ -205,9 +226,11 @@ class Reference(OpenAPIObject):
 
         try:
             output = cls(target = target,
+                         explicit_path = path_string,
                          external_reference = external_reference)
         except TypeError:
             output = cls(target = external_reference,
+                         explicit_path = path_string,
                          external_reference = None)
 
         return output
@@ -246,9 +269,11 @@ class Reference(OpenAPIObject):
 
         try:
             self.target = target
+            self.explicit_path = path_string
             self.external_reference = external_reference
         except TypeError:
             self.target = external_reference
+            self.explicit_path = path_string
             self.external_reference = None
 
     @property
