@@ -7,7 +7,9 @@
 
 from validator_collection import validators, checkers
 
-from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
+from open_api.schema.XML import XML
+from open_api.schema.Discriminator import Discriminator
+from open_api.utility_classes import Extensions, ManagedList, ExternalDocumentation, Reference, OpenAPIObject
 from open_api.utility_functions import validate_url
 
 SUPPORTED_TYPES = ('null',
@@ -42,7 +44,6 @@ class Schema(OpenAPIObject):
         self._all_of = []
         self._one_of = []
         self._any_of = []
-        self._not = None
 
         self._multiple_of = 1
         self._maximum = None
@@ -74,6 +75,33 @@ class Schema(OpenAPIObject):
         self._read_only = False
         self._write_only = False
 
+        self.not_ = kwargs.pop('not', None)
+
+        external_documentation = kwargs.pop('external_documentation', None) or \
+                                 kwargs.pop('externalDocs', None)
+        self.external_documentation = external_documentation
+
+        self.any_of = kwargs.pop('any_of', None) or kwargs.pop('anyOf', None)
+        self.all_of = kwargs.pop('all_of', None) or kwargs.pop('allOf', None)
+        self.one_of = kwargs.pop('one_of', None) or kwargs.pop('oneOf', None)
+        self.unique_items = kwargs.pop('unique_items', None) or \
+                            kwargs.pop('uniqueItems', None)
+        self.multiple_of = kwargs.pop('multiple_of', None) or kwargs.pop('multipleOf', None)
+        self.exclusive_maximum = kwargs.pop('exclusive_maximum', False) or \
+                                 kwargs.pop('exclusiveMaximum', False)
+        self.exclusive_minimum = kwargs.pop('exclusive_minimum', False) or \
+                                 kwargs.pop('exclusiveMinimum', False)
+        self.max_items = kwargs.pop('max_items', None) or kwargs.pop('maxItems', None)
+        self.min_items = kwargs.pop('min_items', None) or kwargs.pop('minItems', None)
+        self.max_properties = kwargs.pop('max_properties', None) or \
+                              kwargs.pop('maxProperties', None)
+        self.min_properties = kwargs.pop('min_properties', None) or \
+                              kwargs.pop('minProperties', None)
+        self.additional_properties = kwargs.pop('additional_properties', None) or \
+                                     kwargs.pop('additionalProperties', None)
+        self.read_only = kwargs.pop('read_only', False) or kwargs.pop('readOnly', False)
+        self.write_only = kwargs.pop('write_only', False) or kwargs.pop('writeOnly', False)
+
         super().__init__(*args, **kwargs)
 
     @property
@@ -103,7 +131,7 @@ class Schema(OpenAPIObject):
           * ``string``
           * ``integer``
 
-        :rtype: :class:`str <python:str>`
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :raises ValueError: if assigning an unsupported value
         """
@@ -111,8 +139,11 @@ class Schema(OpenAPIObject):
 
     @type.setter
     def type(self, value):
-        value = validators.string(value, allow_empty = False).lower()
-        if value not in SUPPORTED_TYPES:
+        value = validators.string(value, allow_empty = True)
+        if value:
+            value = value.lower()
+
+        if value and value not in SUPPORTED_TYPES:
             raise ValueError('value ({}) not a supported value'.format(value))
 
         self._type = value
@@ -163,6 +194,8 @@ class Schema(OpenAPIObject):
         if not value:
             self._external_documentation = None
         else:
+            print('setting External Documentation with:')
+            print(value)
             if not checkers.is_type(value, 'ExternalDocumentation'):
                 try:
                     value = ExternalDocumentation.new_from_dict(value)
@@ -224,7 +257,7 @@ class Schema(OpenAPIObject):
 
     @property
     def all_of(self):
-        """To validate against this schema, an objet must validate against all
+        """To validate against this schema, an object must validate against all
         of the :class:`Schema` or :class:`Reference` objects included in this
         property.
 
@@ -359,8 +392,6 @@ class Schema(OpenAPIObject):
                         raise ValueError('value expects an iterable of '
                                          'Schema, Reference, or compatible '
                                          'dict objects')
-                else:
-                    new_item = item
 
             self._not = new_item
 
@@ -428,6 +459,11 @@ class Schema(OpenAPIObject):
         if isinstance(value, bool):
             self._exclusive_maximum = value
         else:
+            value = validators.numeric(value, allow_empty = True)
+            if value and self.maximum and value >= self.maximum:
+                raise ValueError('exclusive maximum ({}) cannot be greater than'
+                                 ' or equal to maximum ({})'.format(value,
+                                                                    self.maximum))
             self._exclusive_maximum = validators.numeric(value,
                                                          allow_empty = True)
 
@@ -604,8 +640,6 @@ class Schema(OpenAPIObject):
                         raise ValueError('value expects an iterable of '
                                          'Schema, Reference, or compatible '
                                          'dict objects')
-                else:
-                    new_item = item
 
             self._items = new_item
 
@@ -678,15 +712,15 @@ class Schema(OpenAPIObject):
             self._properties = {}
         else:
             new_properties = {}
-            for key, item in value:
+            for key in value:
                 key = validators.string(key, allow_empty = False)
-                if not checkers.is_type(item, ('Schema', 'Reference')):
-                    item = validators.dict(item, allow_empty = False)
+                if not checkers.is_type(value[key], ('Schema', 'Reference')):
+                    item = validators.dict(value[key], allow_empty = False)
                     try:
-                        new_item = self.__class__.new_from_dict(item)
+                        new_item = self.__class__.new_from_dict(value[key])
                     except (ValueError, TypeError):
                         try:
-                            new_item = Reference.new_from_dict(item)
+                            new_item = Reference.new_from_dict(value[key])
                         except (ValueError, TypeError):
                             raise ValueError('value expects a dict whose keys '
                                              'are strings and values are either'
@@ -733,8 +767,6 @@ class Schema(OpenAPIObject):
                         raise ValueError('value expects an iterable of '
                                          'Schema, Reference, or compatible '
                                          'dict objects')
-                else:
-                    new_item = item
 
             self._additional_properties = new_item
 
@@ -885,8 +917,8 @@ class Schema(OpenAPIObject):
             output['anyOf'] = [x.to_dict(*args, **kwargs) for x in self.any_of]
         if self.one_of:
             output['oneOf'] = [x.to_dict(*args, **kwargs) for x in self.one_of]
-        if self.not:
-            output['not'] = self.not.to_dict(*args, **kwargs)
+        if self.not_:
+            output['not'] = self.not_.to_dict(*args, **kwargs)
 
         if self.type == 'number' or self.type == 'integer':
             output['multipleOf'] = self.multiple_of
@@ -963,7 +995,7 @@ class Schema(OpenAPIObject):
         description = copied_obj.pop('description', None)
         type_ = copied_obj.pop('type', None)
         default = copied_obj.pop('default', None)
-        XML = copied_obj.pop('xml', None)
+        XML = copied_obj.pop('xml', None) or copied_obj.pop('XML', None)
 
         external_documentation = copied_obj.pop('externalDocs', None) or \
                                  copied_obj.pop('external_documentation', None)
@@ -981,10 +1013,10 @@ class Schema(OpenAPIObject):
                       copied_obj.pop('multiple_of', 1)
 
         maximum = copied_obj.pop('maximum', None)
-        exclusive_maximum = copied_obj.pop('exclusiveMaximum', None) or
+        exclusive_maximum = copied_obj.pop('exclusiveMaximum', None) or \
                             copied_obj.pop('exclusive_maximum', None)
         minimum = copied_obj.pop('minimum', None)
-        exclusive_minimum = copied_obj.pop('exclusiveMinimum', None) or
+        exclusive_minimum = copied_obj.pop('exclusiveMinimum', None) or \
                             copied_obj.pop('exclusive_minimum', None)
 
         max_length = copied_obj.pop('maxLength', None) or \
@@ -1086,7 +1118,7 @@ class Schema(OpenAPIObject):
         self.description = copied_obj.pop('description', self.description)
         self.type = copied_obj.pop('type', self.type)
         self.default = copied_obj.pop('default', self.default)
-        self.XML = copied_obj.pop('xml', self.XML)
+        self.XML = copied_obj.pop('XML', None) or copied_obj.pop('xml', self.XML)
         if 'externalDocs' in copied_obj:
             self.external_documentation = copied_obj.pop('externalDocs')
         elif 'external_documentation' in copied_obj:
@@ -1115,12 +1147,12 @@ class Schema(OpenAPIObject):
 
         self.maximum = copied_obj.pop('maximum', self.maximum)
         self.exclusive_maximum = copied_obj.pop('exclusiveMaximum',
-                                                self.exclusive_maximum) or
+                                                self.exclusive_maximum) or \
                                  copied_obj.pop('exclusive_maximum',
                                                 self.exclusive_maximum)
         self.minimum = copied_obj.pop('minimum', self.minimum)
         self.exclusive_minimum = copied_obj.pop('exclusiveMinimum',
-                                                self.exclusive_minimum) or
+                                                self.exclusive_minimum) or \
                                  copied_obj.pop('exclusive_minimum',
                                                 self.exclusive_minimum)
 
@@ -1136,7 +1168,7 @@ class Schema(OpenAPIObject):
                          copied_obj.pop('min_items', self.min_items)
         self.unique_items = copied_obj.pop('uniqueItems', None) or \
                             copied_obj.pop('unique_items', self.unique_items)
-        self.items = copied_obj.pop('items', self.itemms)
+        self.items = copied_obj.pop('items', self.items)
 
         self.max_properties = copied_obj.pop('maxProperties', None) or \
                               copied_obj.pop('max_properties', self.max_properties)
@@ -1199,4 +1231,79 @@ class Schema(OpenAPIObject):
             if not checkers.is_type(self.additional_properties, ('Schema', 'Reference')):
                 return False
 
+        if self.discriminator and not self.one_of and not self.any_of and not self.all_of:
+            return False
+
         return True
+
+    @property
+    def validity_message(self):
+        """Human-readable message that provides a diagnosis of the object's
+        validity. If valid, will return "Object is valid." If not valid, will
+        provide a series of diagnostic messages.
+
+        .. note::
+
+          This property is **NOT** meant to be machine-readable. It is included
+          for diagnostic purposes and to provide easier debugging of your
+          applications.
+
+        :rtype: :class:`str <python:str>`
+
+        """
+        if self.is_valid:
+            return "Object is valid."
+
+        output = 'OBJECT IS INVALID. Reasons are:'
+
+        if not checkers.is_string(self.type):
+            output += '\n\n* type property is not a string.'
+
+        if self.all_of:
+            all_of_count = 0
+            for item in self.all_of:
+                if not checkers.is_type(item, ('Schema', 'Reference')):
+                    all_of_count += 1
+            if all_of_count > 0:
+                output += '\n\n* {} items in all_of are not Schema or Reference objects'.format(all_of_count)
+
+        if self.any_of:
+            any_of_count = 0
+            for item in self.any_of:
+                if not checkers.is_type(item, ('Schema', 'Reference')):
+                    any_of_count += 1
+
+            if any_of_count > 0:
+                output += '\n\n* {} items in any_of are not Schema or Reference objects'.format(any_of_count)
+
+        if self.one_of:
+            one_of_count = 0
+            for item in self.one_of:
+                if not checkers.is_type(item, ('Schema', 'Reference')):
+                    one_of_count += 1
+
+            if one_of_count > 0:
+                output += '\n\n* {} items in one_of are not Schema or Reference objects'.format(one_of_count)
+
+        if self.not_ and not checkers.is_type(self.not_, ('Schema', 'Reference')):
+            output += '\n\n* not_ is not a Schema or Reference object'
+
+        if self.type == 'array' and not self.items:
+            output += '\n\n* type is set to "array", but items is empty'
+
+        if self.items and not checkers.is_type(self.items, ('Schema', 'Reference')):
+            output += '\n\n* items is not a Schema or Reference object'
+
+        if self.properties:
+            for key in self.properties:
+                if not checkers.is_type(self.properties[key], ('Schema', 'Reference')):
+                    output += '\n\n* properties.{} is not a Schema or Reference object'.format(key)
+
+        if self.additional_properties and not isinstance(self.additional_properties, bool):
+            if not checkers.is_type(self.additional_properties, ('Schema', 'Reference')):
+                output += '\n\n* additional_properties is not a bool, Schem,a or Reference object'
+
+        if self.discriminator and not self.one_of and not self.any_of and not self.all_of:
+            output += '\n\n* discriminator can only be set if one_of, any_of, or all_of are used'
+
+        return output
