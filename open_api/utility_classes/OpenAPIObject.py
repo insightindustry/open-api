@@ -38,6 +38,41 @@ class OpenAPIObject(object):
         super(OpenAPIObject, self).__init__(*args)
 
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        self_dict = self.to_dict()
+        other_dict = other.to_dict()
+
+        return checkers.are_dicts_equivalent(self_dict, other_dict)
+
+    def __str__(self):
+        object_title = getattr(self, 'title', None) or \
+                       getattr(self, 'name', None) or \
+                       getattr(self, 'summary', None) or \
+                       getattr(self, 'id', None) or \
+                       'Untitled'
+
+        return '<{}: {}>'.format(self.__class__.__name__,
+                                 object_title)
+
+    def __lt__(self, other):
+        raise TypeError('{} objects do not support Less-Than comparisons'.format(
+            self.__class__.__name__))
+
+    def __gt__(self, other):
+        raise TypeError('{} objects do not support Greater-Than comparisons'.format(
+            self.__class__.__name__))
+
+    def __le__(self, other):
+        raise TypeError('{} objects do not support Less-Than-or-Equal comparisons'.format(
+            self.__class__.__name__))
+
+    def __ge__(self, other):
+        raise TypeError('{} objects do not support Greater-Than-or-Equal comparisons'.format(
+            self.__class__.__name__))
+
     @property
     def description(self):
         """A description of the object. Defaults to :obj:`None <python:None>`.
