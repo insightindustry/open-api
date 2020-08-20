@@ -10,6 +10,7 @@ from validator_collection import validators, checkers
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 from open_api.paths.RequestBody import RequestBody
 from open_api.paths.Operation import Operation
+from open_api.paths.PathItem import PathItem
 
 class Paths(OpenAPIObject):
     """Object representation of a :term:`Paths` object.
@@ -25,6 +26,7 @@ class Paths(OpenAPIObject):
     """
 
     def __init__(self, *args, **kwargs):
+        self._path_string = None
         super().__init__(*args, **kwargs)
 
     def to_dict(self, **kwargs):
@@ -141,5 +143,7 @@ class Paths(OpenAPIObject):
 
 __all__ = [
     'Paths',
+    'PathItem',
+    'Operation',
     'RequestBody'
 ]

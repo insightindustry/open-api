@@ -389,18 +389,19 @@ class Operation(OpenAPIObject):
 
     @classmethod
     def new_from_dict(cls, obj, **kwargs):
-        """Create a new :class:`Contact` object from a :class:`dict <python:dict>`.
+        """Create a new :class:`Operation` object from a :class:`dict <python:dict>`.
 
-        :param obj: A :class:`dict <python:dict>` representation of the Contact.
+        :param obj: A :class:`dict <python:dict>` representation of the Operation.
         :type obj: :class:`dict <python:dict>`
 
-        :returns: :class:`Contact` object
-        :rtype: :class:`Contact`
+        :returns: :class:`Operation` object
+        :rtype: :class:`Operation`
         """
         obj = validators.dict(obj, allow_empty = True)
         copied_obj = {}
-        for key in obj:
-            copied_obj[key] = obj[key]
+        if obj:
+            for key in obj:
+                copied_obj[key] = obj[key]
 
         tags = copied_obj.pop('tags', None)
         summary = copied_obj.pop('summary', None)
