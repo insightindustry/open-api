@@ -10,9 +10,11 @@ from validator_collection import validators, checkers
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 from open_api.responses.Response import Response
 from open_api.responses.Responses import Responses
+from open_api.responses.NamedResponses import NamedResponses
 
 
 __all__ = [
     'Responses',
-    'Response'
+    'Response',
+    'NamedResponses'
 ]
