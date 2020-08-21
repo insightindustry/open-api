@@ -6,11 +6,15 @@
 # there as needed.
 
 from open_api.parameter.Parameter import Parameter
+from open_api.parameter.Parameters import Parameters
 from open_api.parameter.Content import Content
-#from open_api.parameter.Parameters import Parameters
+from open_api.parameter.Header import Header
+from open_api.parameter.Headers import Headers
 
 __all__ = [
     'Content',
     'Parameter',
-#    'Parameters'
+    'Parameters',
+    'Header',
+    'Headers'
 ]
