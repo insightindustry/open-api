@@ -41,3 +41,8 @@ class InvalidKeyError(OpenAPIError):
 
     """
     pass
+
+class InvalidMimeTypeError(OpenAPIError):
+    """Exception raised when validating a string against a MIME type fails.
+    """
+    pass

@@ -24,9 +24,10 @@ from validator_collection import validators, checkers
 from validator_collection import errors as validator_errors
 from validator_collection._compat import basestring
 
-from open_api.errors import DeserializationError, InvalidRuntimeExpressionError, InvalidKeyError
+from open_api.errors import DeserializationError, InvalidRuntimeExpressionError, InvalidKeyError, InvalidMimeTypeError
 
 COMPONENT_MAP_KEY_REGEX = re.compile(r"^[a-zA-Z0-9\.\-_]+$")
+MIME_TYPE_REGEX = re.compile(r"^multipart|[-\w.]+/[-\w.\+]+$")
 
 def parse_yaml(input_data,
                deserialize_function = None,
@@ -391,6 +392,26 @@ def validate_runtime_expression(value, allow_empty = False):
 
 
 def validate_component_map_key(value, allow_empty = False):
+    """Validate ``value`` against the Component Map Key Regex as specified by the
+    OpenAPI Specification.
+
+    :param value: The value to validate.
+    :type value: :class:`str <python:str>`
+
+    :param allow_empty: If ``True``, returns :obj:`None <python:None>` if
+      ``value`` is empty. If ``False``, raises a
+      :class:`EmptyValueError <validator_collection.errors.EmptyValueError>`
+      if ``value`` is empty. Defaults to ``False``.
+    :type allow_empty: :class:`bool <python:bool>`
+
+    :returns: ``value`` / :obj:`None <python:None>`
+    :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+    :raises EmptyValueError: if ``value`` is empty and ``allow_empty`` is ``False``
+    :raises InvalidKeyError: if ``value`` is not a valid Component Map Key or
+      empty with ``allow_empty`` set to ``True``
+
+    """
     if not value and not allow_empty:
         raise validator_errors.EmptyValueError('value (%s) was empty' % value)
     elif not value:
@@ -401,6 +422,42 @@ def validate_component_map_key(value, allow_empty = False):
     if not is_valid:
         raise InvalidKeyError(
             'value (%s) is not a valid Component map key' % value
+        )
+
+    return value
+
+
+def validate_mimetype(value, allow_empty = False):
+    """Validate ``value`` against the Component Map Key Regex as specified by the
+    OpenAPI Specification.
+
+    :param value: The value to validate.
+    :type value: :class:`str <python:str>`
+
+    :param allow_empty: If ``True``, returns :obj:`None <python:None>` if
+      ``value`` is empty. If ``False``, raises a
+      :class:`EmptyValueError <validator_collection.errors.EmptyValueError>`
+      if ``value`` is empty. Defaults to ``False``.
+    :type allow_empty: :class:`bool <python:bool>`
+
+    :returns: ``value`` / :obj:`None <python:None>`
+    :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+    :raises EmptyValueError: if ``value`` is empty and ``allow_empty`` is ``False``
+    :raises InvalidKeyError: if ``value`` is not a valid Component Map Key or
+      empty with ``allow_empty`` set to ``True``
+
+    """
+    if not value and not allow_empty:
+        raise validator_errors.EmptyValueError('value (%s) was empty' % value)
+    elif not value:
+        return None
+
+    is_valid = MIME_TYPE_REGEX.fullmatch(value)
+
+    if not is_valid:
+        raise InvalidMimeTypeError(
+            'value (%s) is not a valid MIME Type' % value
         )
 
     return value
