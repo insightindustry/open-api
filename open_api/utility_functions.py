@@ -200,8 +200,8 @@ def validate_url(value,
     is_recursive = kwargs.pop('is_recursive', False)
 
     if value is not None:
-        value = value.lower()
-        test_value = value.replace(':{', '').replace('{', '').replace('}', '')
+        test_value = value.lower()
+        test_value = test_value.replace(':{', '').replace('{', '').replace('}', '')
     else:
         test_value = None
 
