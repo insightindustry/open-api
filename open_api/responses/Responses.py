@@ -10,6 +10,26 @@ from validator_collection import validators, checkers
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 from open_api.responses.Response import Response
 
+class TestDict(dict):
+    """Interim test class used to model the subclassed :class:`dict <python:dict>`
+    structure."""
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        raise ValueError()
+
+    def __setitem__(self, name, value):
+        name = validators.string(name,
+                                 allow_empty = True,
+                                 coerce_value = True)
+
+        super().__setitem__(name, value)
+
+        raise ValueError
+
+
 class Responses(dict):
     """A container for the expected responses of an operation. The container
     maps a HTTP response code to the expected response.
@@ -37,10 +57,88 @@ class Responses(dict):
 
     """
 
+    def _validate_key(self, key):
+        """Internal method that validates that a key is either a valid HTTP
+        response code OR the value ``'default'``.
+
+        :param key: The key value to validate.
+        :type key: Any
+
+        :returns: A :class:`str <python:str>` representation of an HTTP status
+          code, or the value ``'default'``.
+        :rtype: :class:`str <python:str>`
+
+        :raises ValueError: if unable to validate
+
+        """
+        if key != 'default' and checkers.is_integer(key):
+            key = validators.string(key,
+                                    allow_empty = False,
+                                    coerce_value = True)
+        elif key != 'default':
+            raise ValueError(
+                'key (%s) must either be "default" or an HTTP status code' % key)
+
+        return key
+
+    def _validate_value(self, value):
+        """Internal method that validates that a value is a valid :class:`Response`,
+        :class:`Reference`, or compatible :class:`dict <python:dict>` object.
+
+        :param value: The value to validate.
+
+        :returns: A :class:`Response` or :class:`Reference` object.
+        :rtype: :class:`Response` / :class:`Reference`
+
+        :raises ValueError: if ``value`` is invalid
+
+        """
+        if checkers.is_dict(value):
+            try:
+                value = Response.new_from_dict(value)
+            except ValueError:
+                try:
+                    value = Reference.new_from_dict(value)
+                except ValueError:
+                    raise ValueError('value must be a Response instance, '
+                                     'Reference instance, or compatible dict '
+                                     'but was: %s' % type(value))
+        elif not checkers.is_type(value, ('Response', 'Reference')):
+            raise ValueError('value must be a Response instance, '
+                             'Reference instance, or compatible dict '
+                             'but was: %s' % type(value))
+
+        return value
+
     def __init__(self, *args, **kwargs):
         self._extensions = None
 
-        super().__init__(*args, **kwargs)
+        interim_dict = {}
+
+        for item in args:
+            if isinstance(item, list):
+                for subitem in item:
+                    key = self._validate_key(subitem[0])
+                    value = subitem[1]
+
+                    interim_dict[key] = value
+
+        for key in kwargs:
+            value = kwargs.pop(key)
+            key = self._validate_key(key)
+
+            interim_dict[key] = value
+
+        if 'default' in interim_dict:
+            default_value = interim_dict.pop('default')
+            self.default = default_value
+
+        for key in interim_dict:
+            value = interim_dict[key]
+            if value:
+                value = self._validate_value(value)
+
+        super().__init__(**interim_dict)
 
     @property
     def default(self):
@@ -61,8 +159,15 @@ class Responses(dict):
         super(Responses, self).__delitem__(key)
 
     def __getitem__(self, name):
-        if name.startswith('__') and name.endswith('__') and hasattr(self, name):
-            return getattr(self, name)
+        if checkers.is_integer(name):
+            name = validators.string(name,
+                                     allow_empty = False,
+                                     coerce_value = True)
+        try:
+            if name.startswith('__') and name.endswith('__') and hasattr(self, name):
+                return getattr(self, name)
+        except AttributeError:
+            raise KeyError(name)
 
         return super(Responses, self).__getitem__(name)
 
@@ -70,29 +175,10 @@ class Responses(dict):
         return self.__getitem__(name) or default
 
     def __setitem__(self, name, value):
-        if name != 'default':
-            if checkers.is_integer(name):
-                name = validators.string(name,
-                                         allow_empty = True,
-                                         coerce_value = True)
-            else:
-                raise ValueError(
-                    'key (%s) must either be "default" or an HTTP status code' % name)
+        name = self._validate_key(name)
+
         if value:
-            if checkers.is_dict(value):
-                try:
-                    value = Response.new_from_dict(value)
-                except ValueError:
-                    try:
-                        value = Reference.new_from_dict(value)
-                    except ValueError:
-                        raise ValueError('value must be a Response instance, '
-                                         'Reference instance, or compatible dict '
-                                         'but was: %s' % type(value))
-            elif not checkers.is_type(value, ('Response', 'Reference')):
-                raise ValueError('value must be a Response instance, '
-                                 'Reference instance, or compatible dict '
-                                 'but was: %s' % type(value))
+            value = self._validate_value(value)
 
         super(Responses, self).__setitem__(name, value)
 
@@ -249,12 +335,12 @@ class Responses(dict):
         :returns: :class:`Responses` object
         :rtype: :class:`Responses`
         """
-        copied_obj = validators.dict(dict_object, allow_empty = True)
+        copied_obj = validators.dict(dict_object, allow_empty = True).copy()
         if not copied_obj:
             copied_obj = {}
 
         output = cls()
-        for key in copied_obj:
+        for key in dict_object:
             if key == 'extensions':
                 output.extensions = Extensions.new_from_dict(copied_obj, **kwargs)
             else:
@@ -366,11 +452,12 @@ class Responses(dict):
           key on the instance will *not* be affected by this method.
 
         """
-        copied_obj = validators.dict(input_data, allow_empty = True)
+        copied_obj = validators.dict(input_data, allow_empty = True).copy()
+
         if not copied_obj:
             copied_obj = {}
 
-        for key in copied_obj:
+        for key in input_data:
             if key != 'extensions':
                 value = copied_obj.pop(key)
                 self[key] = value
