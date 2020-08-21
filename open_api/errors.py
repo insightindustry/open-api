@@ -34,3 +34,10 @@ class InvalidRuntimeExpressionError(OpenAPIError):
 
     """
     pass
+
+class InvalidKeyError(OpenAPIError):
+    """Exception raised when validating a :class:`Components` map key fails because it does not conform
+    to the OpenAPI Specification's indicated regular expression.
+
+    """
+    pass

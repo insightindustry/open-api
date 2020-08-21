@@ -10,6 +10,7 @@ import yaml
 from abnf import Rule as ABNFRule
 from abnf import ParseError
 from abnf.grammars.misc import load_grammar_rules
+import re
 
 try:
     import ujson as json
@@ -23,7 +24,9 @@ from validator_collection import validators, checkers
 from validator_collection import errors as validator_errors
 from validator_collection._compat import basestring
 
-from open_api.errors import DeserializationError, InvalidRuntimeExpressionError
+from open_api.errors import DeserializationError, InvalidRuntimeExpressionError, InvalidKeyError
+
+COMPONENT_MAP_KEY_REGEX = re.compile(r"^[a-zA-Z0-9\.\-_]+$")
 
 def parse_yaml(input_data,
                deserialize_function = None,
@@ -383,5 +386,21 @@ def validate_runtime_expression(value, allow_empty = False):
         parser.parse_all(value)
     except ParseError as error:
         raise InvalidRuntimeExpressionError('expression (%s) is not a valid Runtime Expression' % value)
+
+    return value
+
+
+def validate_component_map_key(value, allow_empty = False):
+    if not value and not allow_empty:
+        raise validator_errors.EmptyValueError('value (%s) was empty' % value)
+    elif not value:
+        return None
+
+    is_valid = COMPONENT_MAP_KEY_REGEX.fullmatch(value)
+
+    if not is_valid:
+        raise InvalidKeyError(
+            'value (%s) is not a valid Component map key' % value
+        )
 
     return value

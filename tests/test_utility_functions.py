@@ -13,7 +13,7 @@ import pytest
 from validator_collection._compat import basestring
 from validator_collection import checkers
 
-from open_api.utility_functions import validate_url, traverse_dict, validate_runtime_expression
+from open_api.utility_functions import validate_url, traverse_dict, validate_runtime_expression, validate_component_map_key
 
 
 @pytest.mark.parametrize('value, fails, allow_empty, allow_special_ips', [
@@ -256,3 +256,24 @@ def test_validate_runtime_expression(value, fails, allow_empty):
     else:
         with pytest.raises(ValueError):
             value = validate_runtime_expression(value, allow_empty = allow_empty)
+
+
+@pytest.mark.parametrize('value, fails, allow_empty', [
+    ('User', False, False),
+    ('User_1', False, False),
+    ('User_Name', False, False),
+    ('user-name', False, False),
+    ('my.org.User', False, False),
+
+    ('invalid expression', True, False),
+])
+def test_validate_component_map_key(value, fails, allow_empty):
+    if not fails:
+        validated = validate_component_map_key(value, allow_empty = allow_empty)
+        if value:
+            assert validated is not None
+        else:
+            assert validated is None
+    else:
+        with pytest.raises(ValueError):
+            value = validate_component_map_key(value, allow_empty = allow_empty)
