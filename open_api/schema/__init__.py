@@ -10,11 +10,13 @@ from open_api.schema.MediaType import MediaType
 from open_api.schema.XML import XML
 from open_api.schema.Discriminator import Discriminator
 from open_api.schema.Schema import Schema
+from open_api.schema.Schemas import Schemas
 
 __all__ = [
     'Encoding',
     'MediaType',
     'XML',
     'Discriminator',
-    'Schema'
+    'Schema',
+    'Schemas'
 ]
