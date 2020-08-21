@@ -7,6 +7,10 @@
 
 import string as string_
 import yaml
+from abnf import Rule as ABNFRule
+from abnf import ParseError
+from abnf.grammars.misc import load_grammar_rules
+
 try:
     import ujson as json
 except ImportError:
@@ -19,7 +23,7 @@ from validator_collection import validators, checkers
 from validator_collection import errors as validator_errors
 from validator_collection._compat import basestring
 
-from open_api.errors import DeserializationError
+from open_api.errors import DeserializationError, InvalidRuntimeExpressionError
 
 def parse_yaml(input_data,
                deserialize_function = None,
@@ -297,3 +301,87 @@ def traverse_dict(content, target, parent_list = None):
                 break
 
     return path_list
+
+
+def validate_runtime_expression(value, allow_empty = False):
+    """Validate ``value`` against the formal definition of an OpenAPI Specification
+    :term:`Runtime Expression`.
+
+    .. note::
+
+      The following ABNF grammer is used to parse against:
+
+      .. code-block:: ebnf
+
+        expression = ( "$url" / "$method" / "$statusCode" / "$request." source / "$response." source )
+        source = ( header-reference / query-reference / path-reference / body-reference )
+        header-reference = "header." token
+        query-reference = "query." name
+        path-reference = "path." name
+        body-reference = "body" ["#" json-pointer ]
+        json-pointer    = *( "/" reference-token )
+        reference-token = *( unescaped / escaped )
+        unescaped       = %x00-2E / %x30-7D / %x7F-10FFFF
+          ; %x2F ('/') and %x7E ('~') are excluded from 'unescaped'
+        escaped         = "~" ( "0" / "1" )
+          ; representing '~' and '/', respectively
+        name = *( CHAR )
+        token = 1*tchar
+        tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
+          "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
+
+    :param value: The value to validate.
+    :type value: :class:`str <python:str>`
+
+    :param allow_empty: If ``True``, returns :obj:`None <python:None>` if
+      ``value`` is empty. If ``False``, raises a
+      :class:`EmptyValueError <validator_collection.errors.EmptyValueError>`
+      if ``value`` is empty. Defaults to ``False``.
+    :type allow_empty: :class:`bool <python:bool>`
+
+    :returns: ``value`` / :obj:`None <python:None>`
+    :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+    :raises EmptyValueError: if ``value`` is empty and ``allow_empty`` is ``False``
+    :raises InvalidRuntimeExpressionError: if ``value`` is not a valid
+      :term:`Runtime Expression` or empty with ``allow_empty`` set to ``True``
+
+    """
+    if not value and not allow_empty:
+        raise errors.EmptyValueError('value (%s) was empty' % value)
+    elif not value:
+        return None
+
+    @load_grammar_rules()
+    class RuntimeExpressionGrammar(ABNFRule):
+        """ABNF Grammar for OpeNAPI :term:`Runtime Expressions <Runtime Expression>`.
+        Defined as per: `https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#runtimeExpression`_
+        """
+
+        grammar = [
+            'expression = ( "$url" / "$method" / "$statusCode" / "$request." source / "$response." source )',
+            'source = ( header-reference / query-reference / path-reference / body-reference )',
+            'header-reference = "header." token',
+            'query-reference = "query." name',
+            'path-reference = "path." name',
+            'body-reference = "body" ["#" json-pointer ]',
+            'json-pointer    = *( "/" reference-token )',
+            'reference-token = *( unescaped / escaped )',
+            'unescaped       = %x00-2E / %x30-7D / %x7F-10FFFF',
+              # %x2F ('/') and %x7E ('~') are excluded from 'unescaped'
+            'escaped         = "~" ( "0" / "1" )',
+              # ; representing '~' and '/', respectively
+            'name = *( CHAR )',
+            'token = 1*tchar',
+            'tchar = "!" / "#" / "$" / "%" / "&" / "\'" / "*" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA'
+
+        ]
+
+    parser = RuntimeExpressionGrammar('expression')
+
+    try:
+        parser.parse_all(value)
+    except ParseError as error:
+        raise InvalidRuntimeExpressionError('expression (%s) is not a valid Runtime Expression' % value)
+
+    return value

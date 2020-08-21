@@ -27,3 +27,10 @@ class UnsupportedPropertyError(OpenAPIError):
 
     """
     pass
+
+class InvalidRuntimeExpressionError(OpenAPIError):
+    """Exception raised when validating a :term:`Runtime Expression` fails because it does not conform
+    to the ABNF grammar.
+
+    """
+    pass

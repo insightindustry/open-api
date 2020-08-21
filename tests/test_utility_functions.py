@@ -13,7 +13,7 @@ import pytest
 from validator_collection._compat import basestring
 from validator_collection import checkers
 
-from open_api.utility_functions import validate_url, traverse_dict
+from open_api.utility_functions import validate_url, traverse_dict, validate_runtime_expression
 
 
 @pytest.mark.parametrize('value, fails, allow_empty, allow_special_ips', [
@@ -233,3 +233,26 @@ def test_traverse_dict(content, target, expects, error):
     else:
         with pytest.raises(error):
             result = traverse_dict(content, target)
+
+
+@pytest.mark.parametrize('value, fails, allow_empty', [
+    ('$method', False, False),
+    ('$request.header.accept', False, False),
+    ('$request.path.id', False, False),
+    ('$request.body#/user/uuid', False, False),
+    ('$url', False, False),
+    ('$response.body#/status', False, False),
+    ('$response.header.Server', False, False),
+
+    ('invalid expression', True, False),
+])
+def test_validate_runtime_expression(value, fails, allow_empty):
+    if not fails:
+        validated = validate_runtime_expression(value, allow_empty = allow_empty)
+        if value:
+            assert validated is not None
+        else:
+            assert validated is None
+    else:
+        with pytest.raises(ValueError):
+            value = validate_runtime_expression(value, allow_empty = allow_empty)
