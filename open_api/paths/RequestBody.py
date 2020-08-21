@@ -20,6 +20,8 @@ class RequestBody(OpenAPIObject):
         self._required = False
         self._content = None
 
+        self._extensions = None
+
         super().__init__(*args, **kwargs)
 
     @property
@@ -37,42 +39,29 @@ class RequestBody(OpenAPIObject):
 
     @property
     def content(self):
-        """A :class:`dict <python:dict>` containing the representations for the
-        content of the request body.
+        """A :class:`Content` object (which is a subclass of
+        :class:`dict <python:dict>`) containing the representations for the
+        parameter.
 
-        The key is the media type or media type range and the value describes
-        that using media type's content as a :class:`MediaType` object.
+        The key is the media type and the value describes it using either a
+        :class:`str <python:str>` or :class:`MediaType` object.
 
-        .. note::
-
-          For requests that match multiple keys, only the most specific key is
-          applicable. e.g. ``text/plain`` overrides ``text/*``
-
-        :rtype: :class:`dict <python:dict>` where keys are
+        :rtype: :class:`Content <python:Content>` where keys are
           :class:`str <python:str>` and values are :class:`MediaType` /
           :obj:`None <python:None>`
+
         """
         return self._content
 
     @content.setter
     def content(self, value):
-        content_dict = {}
-        value = validators.dict(value, allow_empty = True)
         if not value:
-            self._content = None
-        else:
-            for key in value:
-                if not checkers.is_string(key):
-                    raise ValueError('content key (%s) must be a string' % key)
-                elif checkers.is_dict(value[key]):
-                    content_dict[key] = MediaType.new_from_dict(value[key])
-                elif checkers.is_type(value[key], 'MediaType'):
-                    content_dict[key] = value[key]
-                else:
-                    raise ValueError('value must be a MediaType or compatible '
-                                     'dict. Was: %s' % type(value[key]))
+            value = None
+        elif not checkers.is_type(value, 'Content'):
+            value = validators.dict(value, allow_empty = False)
+            value = Content.new_from_dict(value)
 
-            self._content = content_dict
+        self._content = value
 
     def to_dict(self, *args, **kwargs):
         """Return a :class:`dict <python:dict>` representation of the object.
@@ -85,16 +74,10 @@ class RequestBody(OpenAPIObject):
             'content': None
         }
         if self.content:
-            content_dict = {}
-            for key in self.content:
-                if not checkers.is_string(key):
-                    raise ValueError('content key (%s) must be a string' % key)
-                content_dict[key] = self.content[key].to_dict(**kwargs)
-            output['content'] = content_dict
+            output['content'] = self.content.to_dict()
 
         if self.extensions is not None:
             output = self.extensions.add_to_dict(output, **kwargs)
-
 
         return output
 
@@ -154,7 +137,7 @@ class RequestBody(OpenAPIObject):
         if 'required' in copied_obj:
             self.required = copied_obj.pop('required', False)
         if 'content' in copied_obj:
-            content = copied_obj.pop('content', None)
+            self.content = copied_obj.pop('content', None)
 
         if copied_obj and self.extensions:
             self.extensions.update_from_dict(copied_obj)

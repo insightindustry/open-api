@@ -9,6 +9,7 @@ from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 from open_api.paths.RequestBody import RequestBody
+from open_api.paths.RequestBodies import RequestBodies
 from open_api.paths.Operation import Operation
 from open_api.paths.PathItem import PathItem
 from open_api.paths.Paths import Paths
@@ -19,5 +20,6 @@ __all__ = [
     'Paths',
     'PathItem',
     'Operation',
-    'RequestBody'
+    'RequestBody',
+    'RequestBodies'
 ]
