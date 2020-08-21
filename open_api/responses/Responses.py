@@ -159,10 +159,8 @@ class Responses(dict):
         super(Responses, self).__delitem__(key)
 
     def __getitem__(self, name):
-        if checkers.is_integer(name):
-            name = validators.string(name,
-                                     allow_empty = False,
-                                     coerce_value = True)
+        name = self._validate_key(name)
+        
         try:
             if name.startswith('__') and name.endswith('__') and hasattr(self, name):
                 return getattr(self, name)
@@ -183,6 +181,8 @@ class Responses(dict):
         super(Responses, self).__setitem__(name, value)
 
     def __contains__(self, value):
+        value = self._validate_key(value)
+
         return super(Responses, self).__contains__(value)
 
     def to_dict(self, *args, **kwargs):

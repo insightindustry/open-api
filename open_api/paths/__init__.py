@@ -12,8 +12,10 @@ from open_api.paths.RequestBody import RequestBody
 from open_api.paths.Operation import Operation
 from open_api.paths.PathItem import PathItem
 from open_api.paths.Paths import Paths
+from open_api.paths.Callbacks import Callbacks
 
 __all__ = [
+    'Callbacks',
     'Paths',
     'PathItem',
     'Operation',

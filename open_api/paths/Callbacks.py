@@ -8,19 +8,21 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
-from open_api.utility_functions import validate_url
+from open_api.utility_functions import validate_url, validate_runtime_expression
 from open_api.paths.RequestBody import RequestBody
 from open_api.paths.Operation import Operation
 from open_api.paths.PathItem import PathItem
 
-class Paths(dict):
-    """A container for the paths supported by the API. The container
-    maps a :class:`PathItem` definition to the specific :term:`path` exposed by
-    the API.
+class Callbacks(dict):
+    """A container for the :term:`callbacks` supported by the API. The container
+    maps a :class:`PathItem` definition to the specific :term:`Runtime Expression`.
+    When the Runtime Expression is called on the API, the API then executes the
+    operation implied by the callback.
 
-    Holds the relative paths to the individual endpoints and their operations.
-    The path is appended to the URL from the :class:`Server` Object in order to
-    construct the full URL.
+    Each key in the :class:`Callbacks` container represents the
+    :term:`Runtime Expression` that elicits the callback, while the value of the
+    key must correspond to a :class:`PathItem` (or :class:`Reference` to a
+    :class:`PathItem`) that models the opreation of the callback.
 
     """
 
@@ -37,9 +39,14 @@ class Paths(dict):
 
         """
         if not key:
-            raise ValueError('key must be a valid path. Was: %s' % key)
+            raise ValueError('key must be a valid Runtime Expression. Was: %s' % key)
 
-        key = validate_url(key)
+        if key.startswith('{'):
+            key = key[1:]
+        if key.endswith('}'):
+            key = key[:-1]
+
+        key = validate_runtime_expression(key)
 
         return key
 
@@ -104,10 +111,10 @@ class Paths(dict):
         super().__init__(**interim_dict)
 
     def __getattr__(self, name):
-        return super(Paths, self).__getattr__(name)
+        return super(Callbacks, self).__getattr__(name)
 
     def __delitem__(self, key):
-        super(Paths, self).__delitem__(key)
+        super(Callbacks, self).__delitem__(key)
 
     def __getitem__(self, name):
         name = self._validate_key(name)
@@ -118,7 +125,7 @@ class Paths(dict):
         except AttributeError:
             raise KeyError(name)
 
-        return super(Paths, self).__getitem__(name)
+        return super(Callbacks, self).__getitem__(name)
 
     def get(self, name, default = None):
         return self.__getitem__(name) or default
@@ -130,12 +137,12 @@ class Paths(dict):
             if value:
                 value = self._validate_value(value)
 
-        super(Paths, self).__setitem__(name, value)
+        super(Callbacks, self).__setitem__(name, value)
 
     def __contains__(self, value):
         value = self._validate_key(value)
-
-        return super(Paths, self).__contains__(value)
+        
+        return super(Callbacks, self).__contains__(value)
 
     def to_dict(self, *args, **kwargs):
         """Output the contents of the object to a :class:`dict <python:dict>` object.
@@ -151,7 +158,7 @@ class Paths(dict):
             if hasattr(value, 'to_json'):
                 value = value.to_json(*args, **kwargs)
 
-            output[key] = value
+            output[key] = '{%s}' % value
 
         if self.extensions is not None:
             output = self.extensions.add_to_dict(output, **kwargs)
@@ -278,14 +285,14 @@ class Paths(dict):
 
     @classmethod
     def new_from_dict(cls, dict_object):
-        """Create a new :class:`Paths` object from a :class:`dict <python:dict>`.
+        """Create a new :class:`Callbacks` object from a :class:`dict <python:dict>`.
 
         :param dict_object: A :class:`dict <python:dict>` that contains the extension
           properties.
         :type dict_object: :class:`dict <python:dict>`
 
-        :returns: :class:`Paths` object
-        :rtype: :class:`Paths`
+        :returns: :class:`Callbacks` object
+        :rtype: :class:`Callbacks`
         """
         copied_obj = validators.dict(dict_object, allow_empty = True).copy()
         if not copied_obj:
@@ -306,7 +313,7 @@ class Paths(dict):
                       input_data,
                       deserialize_function = None,
                       **kwargs):
-        """Create a new :class:`Paths` object from a JSON string.
+        """Create a new :class:`Callbacks` object from a JSON string.
 
         :param input_data: The JSON data to de-serialize.
         :type input_data: :class:`str <python:str>`
@@ -337,8 +344,8 @@ class Paths(dict):
           :ref:`simplejson.loads() <simplejson:simplejson.loads>`).
         :type kwargs: keyword arguments
 
-        :returns: A :class:`Paths` representation of ``input_data``.
-        :rtype: :class:`Paths`
+        :returns: A :class:`Callbacks` representation of ``input_data``.
+        :rtype: :class:`Callbacks`
         """
         dict_object = parse_json(input_data,
                                  deserialize_function = deserialize_function,
@@ -353,7 +360,7 @@ class Paths(dict):
                       input_data,
                       deserialize_function = None,
                       **kwargs):
-        """De-serialize YAML data into a :class:`Paths` object
+        """De-serialize YAML data into a :class:`Callbacks` object
 
         :param input_data: The YAML data to de-serialize.
         :type input_data: :class:`str <python:str>` / Path-like object
@@ -380,8 +387,8 @@ class Paths(dict):
           to ``yaml.safe_load()``.
         :type kwargs: keyword arguments
 
-        :returns: :class:`Paths` representation of ``input_data``
-        :rtype: :class:`Paths`
+        :returns: :class:`Callbacks` representation of ``input_data``
+        :rtype: :class:`Callbacks`
         """
         dict_object = parse_yaml(input_data,
                                  deserialize_function = deserialize_function,
