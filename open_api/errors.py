@@ -46,3 +46,9 @@ class InvalidMimeTypeError(OpenAPIError):
     """Exception raised when validating a string against a MIME type fails.
     """
     pass
+
+class TooLongParameterContentError(OpenAPIError):
+    """Exception raised when attempting to add multiple media types to a
+    :class:`Parameter` ``content`` property.
+    """
+    pass
