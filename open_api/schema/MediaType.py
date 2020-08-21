@@ -7,7 +7,8 @@
 
 from validator_collection import validators, checkers
 
-from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject, Example
+from open_api.schema.Schema import Schema
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject, Example, Examples
 from open_api.utility_functions import validate_url
 
 class MediaType(OpenAPIObject):
@@ -18,6 +19,8 @@ class MediaType(OpenAPIObject):
         self._example = None
         self._examples = None
         self._encoding = None
+
+        self._extensions = None
 
         super().__init__(*args, **kwargs)
 
@@ -31,8 +34,21 @@ class MediaType(OpenAPIObject):
 
     @schema.setter
     def schema(self, value):
-        # TODO
-        raise NotImplementedError()
+        if not value:
+            self._schema = None
+        else:
+            if not checkers.is_type(value, ('Schema', 'Reference')):
+                value = validators.dict(value, allow_empty = False)
+                try:
+                    value = Schema.new_from_dict(value)
+                except ValueError:
+                    try:
+                        value = Reference.new_from_dict(value)
+                    except ValueError:
+                        raise ValueError('Expects a Schema, Reference, or '
+                                         'compatible dict object. Received: %s' % type(value))
+
+        self._schema = value
 
     @property
     def example(self):
@@ -82,30 +98,17 @@ class MediaType(OpenAPIObject):
           and values are :class:`Example` or :class:`Reference` /
           :obj:`None <python:None>`
         """
-        return self._example
+        return self._examples
 
     @examples.setter
     def examples(self, value):
-        examples_dict = {}
         value = validators.dict(value, allow_empty = True)
         if not value:
             self._examples = None
+        elif checkers.is_type(value, 'Examples'):
+            self._examples = value
         else:
-            for key in value:
-                if not checkers.is_string(key):
-                    raise ValueError('examples key (%s) must be a string' % key)
-                elif checkers.is_dict(value[key]):
-                    try:
-                        examples_dict[key] = Example.new_from_dict(value[key])
-                    except ValueError:
-                        examples_dict[key] = Reference.new_from_dict(value[key])
-                elif checkers.is_type(value[key], ('Example', 'Reference')):
-                    examples_dict[key] = value[key]
-                else:
-                    raise ValueError('value must be a Example, Reference, or '
-                                     'compatible dict. Was: %s' % type(value[key]))
-
-            self._examples = content_dict
+            self._examples = Examples.new_from_dict(value)
 
     @property
     def encoding(self):
@@ -170,6 +173,9 @@ class MediaType(OpenAPIObject):
                 encoding_dict[key] = self.encoding[key].to_dict(**kwargs)
 
             output['encoding'] = encoding_dict
+
+        if self.extensions is not None:
+            output = self.extensions.add_to_dict(output, **kwargs)
 
         return output
 
