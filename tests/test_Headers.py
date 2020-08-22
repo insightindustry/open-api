@@ -12,8 +12,7 @@ Tests for the :class:`Headers` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.parameter.Header import Header
-from open_api.parameter.Headers import Headers
+from open_api.parameters import Header, Headers
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

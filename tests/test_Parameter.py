@@ -12,8 +12,7 @@ Tests for the :class:`Parameter` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.parameter.Parameter import Parameter
-from open_api.parameter.Content import Content
+from open_api.parameters import Parameter, Content
 from open_api.utility_classes import Reference
 
 NEW_INPUT_DICTIONARY = [

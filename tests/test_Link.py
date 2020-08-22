@@ -12,7 +12,7 @@ Tests for the :class:`Link` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.link.Link import Link
+from open_api.links import Link
 
 NEW_INPUT_DICTIONARY = [
     ({ 'description': 'Test Description', 'operation_ref': '#/valid/value/here', 'operation_id': 'testName', 'server': {'url': 'http://testapi.dev', 'description': 'Test Server Description'}, 'request_body': 'test value', 'parameters': {'test': '{$url}'} }, None),

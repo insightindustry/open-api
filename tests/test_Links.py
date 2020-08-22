@@ -12,7 +12,7 @@ Tests for the :class:`Links` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.link.Links import Links
+from open_api.links import Links
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

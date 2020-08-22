@@ -7,7 +7,7 @@
 
 from validator_collection import validators, checkers
 
-from open_api.utility_classes.OpenAPIObject import OpenAPIObject
+from open_api.utility_classes.open_api_object import OpenAPIObject
 from open_api.utility_functions import traverse_dict
 
 class Reference(OpenAPIObject):

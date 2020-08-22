@@ -12,8 +12,8 @@ Tests for the :class:`RequestBody` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.paths.RequestBody import RequestBody
-from open_api.parameter.Content import Content
+from open_api.paths import RequestBody
+from open_api.parameters import Content
 from open_api.utility_classes import Reference
 
 NEW_INPUT_DICTIONARY = [

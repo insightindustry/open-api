@@ -12,8 +12,7 @@ Tests for the :class:`RequestBodies` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.paths.RequestBody import RequestBody
-from open_api.paths.RequestBodies import RequestBodies
+from open_api.paths import RequestBody, RequestBodies
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

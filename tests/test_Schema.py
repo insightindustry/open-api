@@ -12,9 +12,7 @@ Tests for the :class:`Schema` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.schema.Schema import Schema
-from open_api.schema.XML import XML
-from open_api.schema.Discriminator import Discriminator
+from open_api.schemas import Schema, XML, Discriminator
 from open_api.utility_classes import ExternalDocumentation
 
 NEW_INPUT_DICTIONARY = [

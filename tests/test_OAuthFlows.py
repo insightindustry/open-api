@@ -12,8 +12,7 @@ Tests for the :class:`OAuthFlows` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.security_scheme.OAuthFlows import OAuthFlows
-from open_api.security_scheme.OAuthFlow import OAuthFlow
+from open_api.security_schemes import OAuthFlows, OAuthFlow
 
 NEW_INPUT_DICTIONARY = [
     ({ 'implicit': { 'authorizationUrl': 'http://www.yahoo.com', 'tokenUrl': 'http://www.yahoo.com', 'refreshUrl': 'http://www.yahoo.com', 'scopes': { 'write:pets': 'modify pets in your account'} } }, None),

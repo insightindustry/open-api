@@ -13,7 +13,7 @@ import pytest
 from validator_collection import checkers
 
 from open_api.utility_classes import Reference
-from open_api.schema import Schemas
+from open_api.schemas import Schemas
 
 
 NEW_INPUT_VALUES_AS_TUPLES = [

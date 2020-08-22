@@ -7,8 +7,8 @@
 
 from validator_collection import validators, checkers
 
-from open_api.utility_classes.Extensions import Extensions
-from open_api.utility_classes.OpenAPIObject import OpenAPIObject
+from open_api.utility_classes import Extensions
+from open_api.utility_classes import OpenAPIObject
 
 class Example(OpenAPIObject):
     """Object representation of an Example of a request or response from the API."""

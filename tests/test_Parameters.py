@@ -12,8 +12,7 @@ Tests for the :class:`Parameters` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.parameter.Parameter import Parameter
-from open_api.parameter.Parameters import Parameters
+from open_api.parameters import Parameter, Parameters
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

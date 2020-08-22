@@ -7,8 +7,8 @@
 
 from validator_collection import validators, checkers
 
-from open_api.info.Contact import Contact
-from open_api.info.License import License
+from open_api.info.contact import Contact
+from open_api.info.license import License
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
 
 class Info(OpenAPIObject):

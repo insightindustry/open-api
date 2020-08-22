@@ -7,8 +7,8 @@
 
 from validator_collection import validators, checkers
 
-from open_api.examples.Example import Example
-from open_api.examples.Examples import Example
+from open_api.examples.example import Example
+from open_api.examples.examples import Examples
 
 __all__ = [
     'Example',

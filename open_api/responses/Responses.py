@@ -8,7 +8,7 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIDict
-from open_api.responses.Response import Response
+from open_api.responses.response import Response
 
 class Responses(OpenAPIDict):
     """A container for the expected responses of an operation. The container

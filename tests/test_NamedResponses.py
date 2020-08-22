@@ -12,8 +12,7 @@ Tests for the :class:`NamedResponses` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.responses import Response
-from open_api.responses.NamedResponses import NamedResponses
+from open_api.responses import Response, NamedResponses
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

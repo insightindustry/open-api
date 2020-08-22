@@ -12,8 +12,7 @@ Tests for the :class:`SecurityRequirements` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.security_scheme.SecurityRequirements import SecurityRequirements
-from open_api.security_scheme.SecurityRequirement import SecurityRequirement
+from open_api.security_schemes import SecurityRequirements, SecurityRequirement
 from open_api.utility_classes import ManagedList
 
 NEW_INPUT_VALUES_AS_TUPLES = [

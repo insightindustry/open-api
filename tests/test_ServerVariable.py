@@ -11,7 +11,7 @@ Tests for the :class:`ServerVariable` class.
 
 import pytest
 
-from open_api.server import ServerVariable
+from open_api.servers import ServerVariable
 from open_api.utility_classes import Markup, ManagedList
 
 

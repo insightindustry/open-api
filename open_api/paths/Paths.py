@@ -9,9 +9,9 @@ from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIDict
 from open_api.utility_functions import validate_url
-from open_api.paths.RequestBody import RequestBody
-from open_api.paths.Operation import Operation
-from open_api.paths.PathItem import PathItem
+from open_api.paths.request_body import RequestBody
+from open_api.paths.operation import Operation
+from open_api.paths.path_item import PathItem
 
 class Paths(OpenAPIDict):
     """A container for the paths supported by the API. The container

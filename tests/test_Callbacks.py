@@ -12,8 +12,7 @@ Tests for the :class:`Callbacks` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.paths import PathItem
-from open_api.paths.Callbacks import Callbacks
+from open_api.paths import PathItem, Callbacks
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

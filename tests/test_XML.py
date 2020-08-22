@@ -11,7 +11,7 @@ Tests for the :class:`XML` class.
 
 import pytest
 
-from open_api.schema.XML import XML
+from open_api.schemas import XML
 
 
 @pytest.mark.parametrize('value, error', [

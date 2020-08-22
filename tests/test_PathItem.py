@@ -13,7 +13,7 @@ import pytest
 
 from validator_collection import checkers
 
-from open_api.paths.PathItem import PathItem
+from open_api.paths import PathItem
 from open_api.utility_classes import ManagedList
 
 NEW_TEST_PARAMETERS = [

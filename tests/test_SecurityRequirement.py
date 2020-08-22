@@ -13,7 +13,7 @@ import pytest
 
 from validator_collection import checkers
 
-from open_api.security_scheme.SecurityRequirement import SecurityRequirement
+from open_api.security_schemes import SecurityRequirement
 
 @pytest.mark.parametrize('value, error', [
     (['1', '2', '3'], None),

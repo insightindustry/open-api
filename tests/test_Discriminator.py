@@ -15,8 +15,8 @@ from validator_collection import checkers
 
 from open_api.errors import UnsupportedPropertyError
 
-from open_api.schema.Discriminator import Discriminator
-from open_api.utility_classes.Reference import Reference
+from open_api.schemas import Discriminator
+from open_api.utility_classes import Reference
 
 
 @pytest.mark.parametrize('value, error', [

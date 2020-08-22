@@ -12,8 +12,8 @@ Tests for the :class:`Content` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.parameter.Content import Content
-from open_api.schema.MediaType import MediaType
+from open_api.parameters import Content
+from open_api.schemas import MediaType
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

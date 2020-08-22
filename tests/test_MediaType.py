@@ -12,7 +12,7 @@ Tests for the :class:`MediaType` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.schema.MediaType import MediaType
+from open_api.schemas import MediaType
 from open_api.utility_classes import ExternalDocumentation, Reference
 
 NEW_INPUT_DICTIONARY = [

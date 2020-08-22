@@ -8,10 +8,10 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject, Reference, ExternalDocumentation
-from open_api.parameter import Parameter
-from open_api.paths import RequestBody
+from open_api.parameters import Parameter
+from open_api.paths.request_body import RequestBody
 from open_api.responses import Responses
-from open_api.server import Server
+from open_api.servers import Server
 
 class Operation(OpenAPIObject):
     """Describes a single API operation on a path."""

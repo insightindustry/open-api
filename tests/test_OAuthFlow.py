@@ -12,7 +12,7 @@ Tests for the :class:`OAuthFlow` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.security_scheme.OAuthFlow import OAuthFlow
+from open_api.security_schemes import OAuthFlow
 from open_api.utility_classes import Reference
 
 NEW_INPUT_DICTIONARY = [

@@ -8,12 +8,12 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
-from open_api.paths.RequestBody import RequestBody
-from open_api.paths.RequestBodies import RequestBodies
-from open_api.paths.Operation import Operation
-from open_api.paths.PathItem import PathItem
-from open_api.paths.Paths import Paths
-from open_api.paths.Callbacks import Callbacks
+from open_api.paths.request_body import RequestBody
+from open_api.paths.request_bodies import RequestBodies
+from open_api.paths.operation import Operation
+from open_api.paths.path_item import PathItem
+from open_api.paths.paths import Paths
+from open_api.paths.callbacks import Callbacks
 
 __all__ = [
     'Callbacks',

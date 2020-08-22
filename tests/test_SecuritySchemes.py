@@ -12,8 +12,7 @@ Tests for the :class:`SecuritySchemes` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.security_scheme.SecurityScheme import SecurityScheme
-from open_api.security_scheme.SecuritySchemes import SecuritySchemes
+from open_api.security_schemes import SecurityScheme, SecuritySchemes
 from open_api.utility_classes import Markup, ManagedList, Reference
 
 NEW_INPUT_VALUES_AS_TUPLES = [

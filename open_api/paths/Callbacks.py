@@ -9,7 +9,7 @@ from validator_collection import validators, checkers
 
 from open_api.utility_classes import Extensions, OpenAPIDict
 from open_api.utility_functions import validate_url, validate_runtime_expression
-from open_api.paths.PathItem import PathItem
+from open_api.paths.path_item import PathItem
 
 class Callbacks(OpenAPIDict):
     """A container for the :term:`callbacks` supported by the API. The container

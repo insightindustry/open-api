@@ -12,13 +12,12 @@ Tests for the :class:`Components` class.
 import pytest
 from validator_collection import checkers
 
-from open_api.components.Components import Components
-from open_api.responses.Response import Response
-from open_api.parameter.Parameter import Parameter
-from open_api.paths.RequestBody import RequestBody
-from open_api.parameter.Header import Header
-from open_api.security_scheme.SecurityScheme import SecurityScheme
-from open_api.utility_classes.Reference import Reference
+from open_api.components import Components
+from open_api.responses import Response
+from open_api.parameters import Parameter, Header
+from open_api.paths import RequestBody
+from open_api.security_schemes import SecurityScheme
+from open_api.utility_classes import Reference
 
 NEW_INPUT_DICTIONARY = [
     ({

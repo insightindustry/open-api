@@ -15,8 +15,6 @@ except ImportError:
 
 import yaml
 from validator_collection import validators, checkers
-from validator_collection.errors import MaximumValueError, MinimumValueError
-import pypandoc
 
 from open_api.utility_functions import parse_json, parse_yaml
 
