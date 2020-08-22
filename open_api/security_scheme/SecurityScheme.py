@@ -1,0 +1,357 @@
+# -*- coding: utf-8 -*-
+
+# The lack of a module docstring for this module is **INTENTIONAL**.
+# The module is imported into the documentation using Sphinx's autodoc
+# extension, and its member function documentation is automatically incorporated
+# there as needed.
+
+from validator_collection import validators, checkers
+
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
+from open_api.utility_functions import validate_url
+
+from open_api.errors import TooLongParameterContentError
+
+SUPPORTED_TYPES = [
+    'apiKey',
+    'http',
+    'oauth2',
+    'openIdConnect'
+]
+
+class SecurityScheme(OpenAPIObject):
+    """Object representation of a single :term:`Security Scheme`.
+
+    Supported schemes are:
+
+      * HTTP authentication,
+      * an API key (either as a header, a cookie parameter or as a query parameter),
+      * OAuth2's common flows (implicit, password, client credentials and authorization code), and
+      * `OpenID Connect Discovery <https://tools.ietf.org/html/draft-ietf-oauth-discovery-06>`_
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        self._type = None
+        self._name = None
+        self._description = None
+        self._location = None
+        self._scheme = None
+        self._bearer_format = None
+        self._flows = None
+        self._open_id_connect_url = None
+
+        self.type_ = kwargs.pop('type', None) or kwargs.pop('type_', None)
+        self.location = kwargs.pop('in', None) or kwargs.pop('in_', None)
+
+        super().__init__(*args, **kwargs)
+
+    @property
+    def type_(self):
+        """The type of the security scheme. **REQUIRED**
+
+        Valid values are:
+
+          * ``apiKey``
+          * ``http``
+          * ``oauth2``
+          * ``openIdConnect``.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+        """
+        return self._type
+
+    @type_.setter
+    def type_(self, value):
+        value = validators.string(value, allow_empty = True)
+        if value and value not in SUPPORTED_TYPES:
+            raise ValueError('Must be either "apiKey", "http", "oauth2", or '
+                             '"openIdConnect". Was: %s' % value)
+
+        self._type = value
+
+    @property
+    def name(self):
+        """The name of the header, query, or cookie parameter. **REQUIRED**
+
+        .. caution::
+
+          * Parameter names are *case sensitive*.
+          * If ``Parameter.location`` is ``'path'``, the name must correspond to
+            the associated path segment from a related :class:`Paths` object.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+        """
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = validators.string(value, allow_empty = True)
+
+    @property
+    def location(self):
+        """The location where the API key is expected. **REQUIRED**
+
+        Possible values are:
+          * ``'query'``
+          * ``'header'``
+          * ``'cookie'``
+
+        .. note::
+
+          Aliased by the ``SecurityScheme.in_`` property.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+        """
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        value = validators.string(value, allow_empty = True)
+        if value:
+            value = value.lower().strip()
+        if value not in [None, 'query', 'header', 'cookie']:
+            raise ValueError('value must be None, query, header, or cookie.'
+                             ' Was: %s' % value)
+
+        self._location = value
+
+    @property
+    def in_(self):
+        """The location where the API key is expected. **REQUIRED**
+
+        .. note::
+
+          Alias for the ``SecurityScheme.location`` property.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+        """
+        return self.location
+
+    @in_.setter
+    def in_(self, value):
+        self.location = value
+
+    @property
+    def scheme(self):
+        """The name of the HTTP Authorization scheme to be used in the
+        Authorization header as defined in :RFC:`7235`.
+
+        .. tip::
+
+          **BEST PRACTICE:**
+
+          The values used **SHOULD** be registered in the
+          `IANA Authentication Scheme registry <https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml>`_
+
+          .. caution::
+
+            Please note that while we recommend values used be in the
+            IANA Authentication Scheme registry, the library does **NOT** validate
+            this. Use caution!
+
+        :rtype: :class:`str <python:str>`
+
+        """
+        return self._scheme
+
+    @scheme.setter
+    def scheme(self, value):
+        value = validators.string(value, allow_empty = True)
+        self._scheme = value
+
+    @property
+    def bearer_format(self):
+        """A hint to the client to identify how the bearer token is formatted.
+
+        .. note::
+
+          Bearer tokens are usually generated by an authorization server, so
+          this information is primarily for documentation purposes.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+        """
+        return self._bearer_format
+
+    @bearer_format.setter
+    def bearer_format(self, value):
+        value = validators.string(value, allow_empty = True)
+        self._bearer_format = value
+
+    @property
+    def flows(self):
+        """An object containing configuration information for the flow types supported.
+        **REQUIRED**.
+
+        :rtype: :class:`OAuthFlows` / :obj:`None <python:None>`
+        """
+        return self._flows
+
+    @flows.setter
+    def flows(self, value):
+        if not value:
+            self._flows = None
+        elif not checkers.is_type(value, 'OAuthFlows'):
+            value = validators.dict(value, allow_empty = False)
+            value = OAuthFlows.new_from_dict(value)
+
+        self._flows = value
+
+    @property
+    def open_id_connect_url(self):
+        """OpenId Connect URL to discover OAuth2 configuration values. **REQUIRED**
+
+        .. warning::
+
+          This **MUST** be in the form of a URL.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+        """
+        return self._open_id_connect_url
+
+    @open_id_connect_url.setter
+    def open_id_connect_url(self, value):
+        value = validators.url(value,
+                               allow_empty = True,
+                               allow_special_ips = True)
+
+        self._open_id_connect_url = value
+
+    def to_dict(self, *args, **kwargs):
+        """Return a :class:`dict <python:dict>` representation of the object.
+
+        :rtype: :class:`dict <python:dict>` / :obj:`None <python:None>`
+        """
+        output = {
+            'name': self.name,
+            'type': self.type_,
+            'description': self.description,
+            'in': self.location,
+            'scheme': self.scheme,
+            'bearerFormat': self.bearer_format,
+            'flows': None,
+            'openIdConnectUrl': self.open_id_connect_url
+        }
+
+        if self.flows:
+            output['flows'] = self.flows.to_dict(**kwargs)
+
+        if self.extensions is not None:
+            output = self.extensions.add_to_dict(output, **kwargs)
+
+        return output
+
+    @classmethod
+    def new_from_dict(cls, obj, **kwargs):
+        """Create a new :class:`SecurityScheme` object from a :class:`dict <python:dict>`.
+
+        :param obj: A :class:`dict <python:dict>` that contains the Security Scheme
+          properties.
+        :type obj: :class:`dict <python:dict>`
+
+        :returns: :class:`SecurityScheme` object
+        :rtype: :class:`SecurityScheme`
+        """
+        obj = validators.dict(obj, allow_empty = True)
+        copied_obj = {}
+        for key in obj:
+            copied_obj[key] = obj[key]
+
+        name = copied_obj.pop('name', None)
+        description = copied_obj.pop('description', None)
+        location = copied_obj.pop('location', None) or \
+                   copied_obj.pop('in', None) or \
+                   copied_obj.pop('in_', None)
+        type_ = copied_obj.pop('type', None) or copied_obj.pop('type_', None)
+        scheme = copied_obj.pop('scheme', None)
+        bearer_format = copied_obj.pop('bearerFormat', None) or \
+                        copied_obj.pop('bearer_format', None)
+        flows = copied_obj.pop('flows', None)
+        open_id_connect_url = copied_obj.pop('openIdConnectUrl', None) or \
+                              copied_obj.pop('open_id_connect_url', None)
+
+        if copied_obj:
+            extensions = copied_obj
+        else:
+            extensions = None
+
+        output = cls(name = name,
+                     location = location,
+                     description = description,
+                     type_ = type_,
+                     scheme = scheme,
+                     bearer_format = bearer_format,
+                     flows = flows,
+                     open_id_connect_url = open_id_connect_url,
+                     extensions = extensions)
+
+        return output
+
+    def update_from_dict(self, input_data):
+        """Update the object representation based on the input data provided.
+
+        :param input_data: Collection of extension keys to update on the object
+          representation.
+        :type input_data: :class:`dict <python:dict>`
+
+        .. note::
+
+          If a key is present in the instance, but is not included in ``input_data``, that
+          key on the instance will *not* be affected by this method.
+
+        """
+        input_data = validators.dict(input_data, allow_empty = True)
+        copied_obj = {}
+        for key in input_data:
+            copied_obj[key] = input_data[key]
+
+        if 'type' in copied_obj or 'type_' in copied_obj:
+            self.type_ = copied_obj.pop('type', None) or \
+                         copied_obj.pop('type_', None)
+        if 'name' in copied_obj:
+            self.name = copied_obj.pop('name')
+        if 'location' in copied_obj or 'in' in copied_obj or 'in_' in copied_obj:
+            self.location = copied_obj.pop('location', None) or \
+                            copied_obj.pop('in', None) or \
+                            copied_obj.pop('in_', None)
+        if 'description' in copied_obj:
+            self.description = copied_obj.pop('description')
+        if 'scheme' in copied_obj:
+            self.scheme = copied_obj.pop('scheme')
+        if 'bearer_format' in copied_obj:
+            self.bearer_format = copied_obj.pop('bearer_format')
+        if 'flows' in copied_obj:
+            self.flows = copied_obj.pop('flows')
+        if 'openIdConnectUrl' in copied_obj or 'open_id_connect_url' in copied_obj:
+            self.open_id_connect_url = copied_obj.pop('openIdConnectUrl', None) or \
+                                       copied_obj.pop('open_id_connect_url', None)
+
+        if copied_obj and self.extensions:
+            self.extensions.update_from_dict(copied_obj)
+        elif copied_obj:
+            self.extensions = copied_obj
+
+    @property
+    def is_valid(self):
+        """Returns ``True`` if the object is valid per the
+        `OpenAPI Specification <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md>`_
+
+        :rtype: :class:`bool <python:bool>`
+        """
+        is_valid = self.type_ is not None and \
+                   self.name is not None and \
+                   self.location is not None and \
+                   self.flows is not None and \
+                   self.open_id_connect_url is not None
+
+        if not is_valid:
+            return False
+
+        for key in self.flows:
+            if not self.flows[key].is_valid:
+                return False
+
+        return is_valid
