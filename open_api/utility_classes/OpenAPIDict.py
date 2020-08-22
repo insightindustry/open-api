@@ -163,8 +163,15 @@ class OpenAPIDict(dict):
         output = {}
         for key in self:
             value = self[key]
-            if hasattr(value, 'to_json'):
-                value = value.to_json(*args, **kwargs)
+            if hasattr(value, 'to_dict'):
+                value = value.to_dict(*args, **kwargs)
+            elif hasattr(value, 'to_list'):
+                interim_value = value.to_list()
+                value = []
+                for item in interim_value:
+                    if hasattr(item, 'to_dict'):
+                        item = value.to_dict(*args, **kwargs)
+                        value.append(item)
 
             output[key] = value
 

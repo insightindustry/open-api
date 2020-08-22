@@ -261,8 +261,9 @@ class Operation(OpenAPIObject):
 
     @property
     def security(self):
-        """:class:`ManagedList` of security mechanisms that can be used for this
-        operation.
+        """Map of `:class:`ManagedList` instances, where each key in the map
+        corresponds to a value that is a :class:`ManagedList` of security
+        mechanisms that can be used for this operation.
 
         Only one of the security requirement objects needs to be satisfied to
         authorize a request.
@@ -278,34 +279,25 @@ class Operation(OpenAPIObject):
           operation, submit an empty :class:`list <python:list>` or
           :class:`ManagedList`.
 
-        :rtype: :class:`ManagedList` of :class:`SecurityRequirement` instances /
-          :obj:`list <python:list>`
+        :rtype: :class:`SecurityRequirements` instance with keys as
+          :class:`str <python:str>` and values as :class:`ManagedList` of
+          :class:`SecurityRequirement` instances
+
         """
         return self._security
 
     @security.setter
     def security(self, value):
-        if value is None:
-            self._security = None
-        elif not value:
-            self._security = ManagedList()
+        if not value:
+            value = None
+        elif not checkers.is_type(value, 'SecurityRequirements') and isinstance(value, dict):
+            value = SecurityRequirements.new_from_dict(value)
         else:
-            new_value = ManagedList()
-            if not checkers.is_iterable(value):
-                value = [value]
+            raise ValueError('Security Requirements must be a '
+                             'SecurityRequirements instance or compatible dict.'
+                             ' Was: %s' % type(value))
 
-            for requirement in value:
-                if not checkers.is_type(requirement, 'SecurityRequirement'):
-                    try:
-                        requirement = SecurityRequirement.new_from_dict(requirement)
-                    except ValueError:
-                        raise ValueError('Requirement expected to be a '
-                                         'SecurityRequirement instance '
-                                         ' or compatible dict. Was: %s' % type(requirement))
-
-                new_value.append(requirement)
-
-            self._security = new_value
+        self._security = value
 
     @property
     def servers(self):
@@ -344,7 +336,6 @@ class Operation(OpenAPIObject):
 
             self._servers = new_value
 
-
     def to_dict(self, **kwargs):
         """Return a :class:`dict <python:dict>` representation of the object.
 
@@ -375,10 +366,10 @@ class Operation(OpenAPIObject):
             output['responses'] = self.responses.to_dict(**kwargs)
         if self.callbacks:
             output['callbacks'] = {}
-            for key in callbacks:
-                output['callbacks'][key] = callbacks[key].to_dict(**kwargs)
+            for key in self.callbacks:
+                output['callbacks'][key] = self.callbacks[key].to_dict(**kwargs)
         if self.security is not None:
-            output['security'] = [x.to_dict(**kwargs) for x in self.security]
+            output['security'] = self.security.to_dict(**kwargs)
         if self.servers is not None:
             output['servers'] = [x.to_dict(**kwargs) for x in self.servers]
 
