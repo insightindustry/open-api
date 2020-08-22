@@ -102,7 +102,7 @@ class RequestBody(OpenAPIObject):
         required = copied_obj.pop('required', False)
         content = copied_obj.pop('content', None)
 
-        if obj:
+        if copied_obj:
             extensions = Extensions.new_from_dict(copied_obj, **kwargs)
         else:
             extensions = None
