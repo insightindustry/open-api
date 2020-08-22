@@ -7,7 +7,8 @@
 
 from validator_collection import validators, checkers
 
-from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject, Example
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
+from open_api.examples import Example
 from open_api.utility_functions import validate_url
 
 class Header(OpenAPIObject):

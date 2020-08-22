@@ -8,7 +8,8 @@
 from validator_collection import validators, checkers
 
 from open_api.schema.Schema import Schema
-from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject, Example, Examples
+from open_api.utility_classes import Extensions, ManagedList, OpenAPIObject
+from open_api.examples import Example, Examples
 from open_api.utility_functions import validate_url
 
 class MediaType(OpenAPIObject):
