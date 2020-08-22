@@ -11,7 +11,7 @@ Tests for the :class:`Example` class.
 
 import pytest
 
-from open_api.utility_classes import ManagedList, Example
+from open_api.examples.Example import Example
 
 
 @pytest.mark.parametrize('value, error', [

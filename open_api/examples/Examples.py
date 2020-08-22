@@ -8,7 +8,7 @@
 from validator_collection import validators, checkers
 
 from open_api.utility_classes.Extensions import Extensions
-from open_api.utility_classes.Example import Example
+from open_api.examples.Example import Example
 from open_api.utility_classes.OpenAPIDict import OpenAPIDict
 
 from open_api.utility_functions import validate_url, validate_component_map_key

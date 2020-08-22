@@ -7,7 +7,6 @@
 
 from validator_collection import validators, checkers
 
-from open_api.utility_classes.ManagedList import ManagedList
 from open_api.utility_classes.Extensions import Extensions
 from open_api.utility_classes.OpenAPIObject import OpenAPIObject
 

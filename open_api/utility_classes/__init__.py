@@ -18,8 +18,6 @@ from validator_collection import validators, checkers
 from validator_collection.errors import MaximumValueError, MinimumValueError
 import pypandoc
 
-from open_api.utility_classes.Example import Example
-from open_api.utility_classes.Examples import Examples
 from open_api.utility_classes.Extensions import Extensions
 from open_api.utility_classes.ExternalDocumentation import ExternalDocumentation
 from open_api.utility_classes.ManagedList import ManagedList
@@ -29,8 +27,6 @@ from open_api.utility_classes.OpenAPIObject import OpenAPIObject
 from open_api.utility_classes.Reference import Reference
 
 __all__ = [
-    'Example',
-    'Examples',
     'Extensions',
     'ExternalDocumentation',
     'ManagedList',
