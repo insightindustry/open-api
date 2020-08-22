@@ -46,7 +46,6 @@ class OpenAPIDict(dict):
         """
         raise NotImplementedError()
 
-
     def __init__(self, *args, **kwargs):
         self._extensions = None
 
@@ -79,7 +78,7 @@ class OpenAPIDict(dict):
         super(OpenAPIDict, self).__init__(**interim_dict)
 
     def __getattr__(self, name):
-        return super(OpenAPIDict, self).__getattr__(name)
+        return super(OpenAPIDict, self).__getattribute__(name)
 
     def __delitem__(self, key):
         key = self._validate_key(key)
@@ -115,6 +114,43 @@ class OpenAPIDict(dict):
         value = self._validate_key(value)
 
         return super(OpenAPIDict, self).__contains__(value)
+
+    @property
+    def extensions(self):
+        """Collection of :term:`Specification Extensions` that have been applied to the
+        object. Defaults to :obj:`None <python:None>`.
+
+        .. tip::
+
+          If an OpenAPI object does not have a ``description`` property, then this should
+          always raise :exc:`UnsupportedOpenAPIPropertyError`.
+
+        :rtype: :class:`Extensions` / :obj:`None <python:None>`
+        """
+        return self._extensions
+
+    @extensions.setter
+    def extensions(self, value):
+        if not value:
+            self._extensions = None
+        elif checkers.is_type(value, 'Extensions'):
+            self._extensions = value
+        elif checkers.is_dict(value):
+            value = Extensions.new_from_dict(value)
+            self._extensions = Extensions.new_from_dict(value)
+        else:
+            try:
+                value = parse_json(value)
+            except ValueError:
+                try:
+                    value = parse_yaml(value)
+                except ValueError:
+                    raise ValueError('value is not a valid Specification Extensions '
+                                     'object, compatible dict, JSON, or YAML. Was: %s'
+                                     % value.__class__.__name__)
+
+            self._extensions = Extensions.new_from_dict(value)
+
 
     def to_dict(self, *args, **kwargs):
         """Output the contents of the object to a :class:`dict <python:dict>` object.
